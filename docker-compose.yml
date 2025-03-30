@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      TZ: Europe/Prague
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+  app:
+    image: oven/bun:1
+    working_dir: /app
+    links:
+      - postgres:pgsql
+      - mailpit:mailpit
+    volumes:
+      - ./:/app:cached
+    command: bash -c "bun install && bun --bun run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: ${APP_PORT}
+      TZ: Europe/Prague
+      DATABASE_URI: postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@pgsql:5432/${DATABASE_NAME}
+      MAILER_LOCAL: true
+      MAILER_HOST: mailpit
+      MAILER_PORT: 1025
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: http://localhost:${APP_PORT}
