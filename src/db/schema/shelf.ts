@@ -4,6 +4,7 @@ import {relations, sql} from "drizzle-orm";
 import {product} from "./product";
 import {shelfPositionDevice} from "./device";
 import {notificationLowStock} from "./notifications";
+import {user} from "./user";
 
 export const shelf = pgTable('shelf', {
     id: serial().primaryKey(),
@@ -44,7 +45,7 @@ export const shelfPositionLogTypeEnum = pgEnum('shelf_position_log_type', ['refi
 export const shelfPositionLog = pgTable('shelf_position_log', {
     id: serial().primaryKey(),
     type: shelfPositionLogTypeEnum().notNull(),
-    user_id: integer().notNull(), // TODO: user relations
+    user_id: integer().notNull().references(() => user.id, { onUpdate: 'cascade', onDelete: 'set null' }),
     product_id: integer().notNull().references(() => product.id),
     shelf_position_id: integer().notNull().references(() => shelfPosition.id),
     timestamp: timestamp().notNull().default(sql`NOW()`),
@@ -56,4 +57,5 @@ export const shelfPositionLog = pgTable('shelf_position_log', {
 export const shelfPositionLogRelations = relations(shelfPositionLog, ({ one }) => ({
     shelf_position: one(shelfPosition, { fields: [shelfPositionLog.shelf_position_id], references: [shelfPosition.id] }),
     product: one(product, { fields: [shelfPositionLog.product_id], references: [product.id] }),
+    user: one(user, { fields: [shelfPositionLog.user_id], references: [user.id] }),
 }));
