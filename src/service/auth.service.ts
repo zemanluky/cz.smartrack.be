@@ -12,8 +12,8 @@ import * as R from "remeda";
 import {Unauthenticated} from "../error/unauthenticated.error";
 import environment from "../util/environment";
 
-const CONFIG_MAX_REFRESH_TOKENS: number = environment().CONFIG_MAX_REFRESH_TOKENS || 5;
-const CONFIG_REFRESH_TOKEN_DAYS_LIFE: number = environment().CONFIG_REFRESH_TOKEN_DAYS_LIFE || 7;
+const CONFIG_MAX_REFRESH_TOKENS: number = environment.CONFIG_MAX_REFRESH_TOKENS || 5;
+const CONFIG_REFRESH_TOKEN_DAYS_LIFE: number = environment.CONFIG_REFRESH_TOKEN_DAYS_LIFE || 7;
 
 export type TRefreshToken = { jwt: string, validUntil: Date };
 export type TTokenPair = { access: string, refresh: TRefreshToken };

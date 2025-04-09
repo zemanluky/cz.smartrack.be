@@ -1,19 +1,11 @@
-import {type} from "arktype";
-import {coerceNumber} from "./validation";
+import {Type} from "@sinclair/typebox";
+import {Value} from "@sinclair/typebox/value";
 
-const Environment = type({
-    "CONFIG_MAX_REFRESH_TOKENS?": coerceNumber.pipe(type("number > 0")),
-    "CONFIG_REFRESH_TOKEN_DAYS_LIFE?": coerceNumber.pipe(type("number > 0")),
+const Environment = Type.Object({
+    CONFIG_MAX_REFRESH_TOKENS: Type.Optional(Type.Number({ min: 1 })),
+    CONFIG_REFRESH_TOKEN_DAYS_LIFE: Type.Optional(Type.Number({ min: 1 })),
 });
 
-type Environment = typeof Environment.infer;
-const result = Environment(Bun.env);
+const env = Value.Parse(Environment, Bun.env);
 
-export default (): Environment => {
-    if (result instanceof type.errors) {
-        console.error(result.summary);
-        throw new Error('Failed to validate environment.');
-    }
-
-    return result;
-};
+export default env;
