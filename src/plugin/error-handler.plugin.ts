@@ -1,7 +1,8 @@
 import Elysia, {ParseError, ValidationError} from "elysia";
 import {NotFound} from "../error/not-found.error";
-import {Unauthenticated} from "../error/unauthenticated.error";
+import {DEFAULT_MESSAGE as DEFAULT_UNAUTHENTICATED_MESSAGE, Unauthenticated} from "../error/unauthenticated.error";
 import * as R from 'remeda';
+import {DEFAULT_MESSAGE as DEFAULT_UNAUTHORIZED_MESSAGE, Unauthorized} from "../error/unauthorized.error";
 
 type TBaseErrorResponse = {
     error: {
@@ -37,10 +38,21 @@ function createBaseErrorObject(error: Error, message: string, code: string): TBa
 /**
  * Global plugin that handles transforming thrown errors into responses.
  */
-export const errorHandlerPlugin = new Elysia()
-    .error({ NotFound, Unauthenticated })
+export const errorHandlerPlugin = new Elysia({ name: 'error-handler' })
+    .error({ NotFound, Unauthenticated, Unauthorized })
     .onError(({ code, error, set }) => {
         switch(code) {
+            case 'Unauthorized':
+                set.status = 403;
+                return createBaseErrorObject(
+                    error, DEFAULT_UNAUTHORIZED_MESSAGE,
+                    error.action !== null ? `forbidden.${error.action}` : 'forbidden'
+                );
+
+            case 'Unauthenticated':
+                set.status = 401;
+                return createBaseErrorObject(error, DEFAULT_UNAUTHENTICATED_MESSAGE, `unathenticated.${error.code}`);
+
             case 'NotFound': case 'NOT_FOUND':
                 set.status = 'Not Found';
 

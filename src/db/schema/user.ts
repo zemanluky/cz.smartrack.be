@@ -8,10 +8,13 @@ export const user = pgTable('user', {
     id: serial().primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
     role: userRoleEnum().notNull(),
-    email: varchar({ length: 255 }).notNull(),
+    email: varchar({ length: 255 }).notNull().unique(),
     password_hash: char({ length: 72 }).notNull(),
     name: varchar({ length: 255 }).notNull(),
 });
+
+export type TUser = typeof user.$inferSelect;
+export type TUserInsert = typeof user.$inferInsert;
 
 export const userRelations = relations(user, ({ one, many }) => ({
     organization: one(organization, { fields: [user.organization_id], references: [organization.id] }),
@@ -24,9 +27,12 @@ export const userRefreshToken = pgTable('user_refresh_token', {
     jti: char({ length: 72 }).notNull(),
     created_at: timestamp().notNull().default(sql`NOW()`),
     valid_until: timestamp().notNull(),
-    revoked_at: timestamp()
+    revoked_at: timestamp().default(sql`NULL`)
 });
 
 export const userRefreshTokenRelations = relations(userRefreshToken, ({ one, many }) => ({
     user: one(user, { fields: [userRefreshToken.user_id], references: [user.id] }),
 }));
+
+export type TUserRefreshToken = typeof userRefreshToken.$inferSelect;
+export type TUserRefreshTokenInsert = typeof userRefreshToken.$inferInsert;

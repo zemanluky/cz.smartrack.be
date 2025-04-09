@@ -2,9 +2,11 @@ import Elysia from "elysia";
 import swagger from "@elysiajs/swagger";
 import {authController} from "./controller/auth.controller";
 import {errorHandlerPlugin} from "./plugin/error-handler.plugin";
+import {authPlugin} from "./plugin/auth.plugin";
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
+    .use(authPlugin)
     .use(swagger({
         documentation: {
             info: {

@@ -7,10 +7,15 @@
   },
   "dependencies": {
     "@elysiajs/swagger": "^1.2.2",
+    "arktype": "^2.1.17",
     "better-auth": "^1.2.5",
+    "date-fns": "^4.1.0",
     "drizzle-orm": "^0.41.0",
     "elysia": "latest",
-    "pg": "^8.14.1"
+    "jose": "^6.0.10",
+    "pg": "^8.14.1",
+    "remeda": "^2.21.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bun": "^1.2.8",
