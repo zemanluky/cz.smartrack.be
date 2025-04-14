@@ -8,7 +8,6 @@
   "dependencies": {
     "@elysiajs/swagger": "^1.2.2",
     "@sinclair/typebox": "^0.34.33",
-    "better-auth": "^1.2.5",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.41.0",
     "elysia": "latest",
@@ -18,8 +17,8 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.8",
-    "@types/pg": "^8.11.11",
+    "@types/bun": "^1.2.9",
+    "@types/pg": "^8.11.12",
     "bun-types": "latest",
     "drizzle-kit": "^0.30.6"
   },

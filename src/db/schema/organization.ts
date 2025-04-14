@@ -6,11 +6,12 @@ import {user} from "./user";
 
 export const organization = pgTable('organization', {
     id: serial().primaryKey(),
-    name: varchar({ length: 255 }).notNull(),
+    name: varchar({ length: 255 }).notNull().unique(),
     active: boolean().notNull().default(true)
-}, (table) => [
-    index('org_name_idx').on(table.name)
-]);
+});
+
+export type TOrganization = typeof organization.$inferSelect;
+export type TOrganizationInsert = typeof organization.$inferSelect;
 
 export const organizationRelations = relations(organization, ({ many }) => ({
     users: many(user),

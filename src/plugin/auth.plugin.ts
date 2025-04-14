@@ -44,29 +44,27 @@ export const authPlugin = new Elysia({ name: 'auth' })
          * @param requirement Specify the requirement for user authentication.
          *                    By default, the requirement is set to null which means the user's auth state won't be determined.
          */
-        authUser: (requirement: EAuthRequirement|null = null) => {
-            if (requirement === null) return;
+        authUser: (requirement: EAuthRequirement|null = null) => ({
+            resolve: async ({ bearer }) => {
+                if (requirement === null) return { user: null };
 
-            return {
-                resolve: async ({ bearer }): Promise<TUserContext> => {
-                    if (!bearer) {
-                        unauthenticated(requirement);
-                        return { user: null };
-                    }
+                if (!bearer) {
+                    unauthenticated(requirement);
+                    return { user: null };
+                }
 
-                    const verifiedUser = await verifyUserJwt(bearer);
+                const verifiedUser = await verifyUserJwt(bearer);
 
-                    if (!verifiedUser) {
-                        unauthenticated(requirement);
-                        return { user: null };
-                    }
+                if (!verifiedUser) {
+                    unauthenticated(requirement);
+                    return { user: null };
+                }
 
-                    if (requirement === EAuthRequirement.Denied) throw new Unauthorized();
+                if (requirement === EAuthRequirement.Denied) throw new Unauthorized();
 
-                    return { user: { id: verifiedUser.userId, role: verifiedUser.role } };
-                },
-            }
-        },
+                return { user: { id: verifiedUser.userId, role: verifiedUser.role } };
+            },
+        }),
 
         /**
          * Tries to authenticate the device from the request context.
@@ -81,8 +79,9 @@ export const authPlugin = new Elysia({ name: 'auth' })
          * Verifies that the user accessing a given endpoint is in one of a given role.
          * @param requiredUserRole
          */
-        role: (requiredUserRole: TUser['role']|null) => {
+        requireRole: (requiredUserRole: Array<TUser['role']>|null = null) => ({
 
-        }
+        })
     })
+    .as('plugin')
 ;
