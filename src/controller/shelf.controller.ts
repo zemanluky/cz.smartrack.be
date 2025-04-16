@@ -1,6 +1,6 @@
 import Elysia, {t} from "elysia";
 
-export const shelfController = new Elysia({ prefix: '/shelf' })
+export const shelfController = new Elysia({ prefix: '/shelf', tags: ['Shelf'] })
     .get('/', 'List shelves for the current organization')
     .post('/', 'Create shelf for a organization - available only for admin')
     .guard({

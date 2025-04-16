@@ -1,6 +1,6 @@
 import Elysia, {t} from "elysia";
 
-export const productController = new Elysia({ prefix: '/product' })
+export const productController = new Elysia({ prefix: '/product', tags: ['Product'] })
     .get('/', 'List products for the current organization')
     .post('/', 'Create new product')
     .guard({

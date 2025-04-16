@@ -1,6 +1,6 @@
 import Elysia, {t} from "elysia";
 
-export const productDiscountController = new Elysia({ prefix: '/product/:id/discount' })
+export const productDiscountController = new Elysia({ prefix: '/product/:id/discount', tags: ['Product Discount'] })
     .guard({
         params: t.Object({ id: t.Number() })
     })

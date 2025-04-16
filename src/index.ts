@@ -4,6 +4,12 @@ import {authController} from "./controller/auth.controller";
 import {errorHandlerPlugin} from "./plugin/error-handler.plugin";
 import {authPlugin} from "./plugin/auth.plugin";
 import {organizationController} from "./controller/organization.controller";
+import {notificationController} from "./controller/notification.controller";
+import {productController} from "./controller/product.controller";
+import {productDiscountController} from "./controller/product-discount.controller";
+import {shelfController} from "./controller/shelf.controller";
+import {shelfPositionController} from "./controller/shelf-position.controller";
+import {userController} from "./controller/user.controller";
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
@@ -27,7 +33,13 @@ const app = new Elysia()
         }
     }))
     .use(authController)
+    .use(notificationController)
     .use(organizationController)
+    .use(productController)
+    .use(productDiscountController)
+    .use(shelfController)
+    .use(shelfPositionController)
+    .use(userController)
     .listen(3000)
 ;
 
