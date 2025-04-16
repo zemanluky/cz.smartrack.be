@@ -1,12 +1,14 @@
 import Elysia, {t} from "elysia";
 import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
-import {organizationData, organizationResponse} from "../model/organization.model";
+import {organizationData, organizationListFilters, organizationResponse} from "../model/organization.model";
 import {errorResponse} from "../model/error.model";
 import {
+    listOrganizations,
     removeOrganization,
     retrieveOrganization,
     saveOrganization
 } from "../service/organization.service";
+import {paginatedResponse} from "../model/pagination.model";
 
 export const organizationController = new Elysia({
     prefix: '/organization',
@@ -18,10 +20,14 @@ export const organizationController = new Elysia({
     .use(authPlugin)
     .guard({ authUser: EAuthRequirement.Required })
     .get(
-        '/', ({ user }) => {
-
+        '/', async ({ query }) => {
+            return await listOrganizations(query);
         }, {
-            detail: { description: 'Retrieves a paginated list of organizations with the option to filter results.' }
+            query: organizationListFilters,
+            detail: { description: 'Retrieves a paginated list of organizations with the option to filter results.' },
+            response: {
+                200: paginatedResponse(organizationResponse)
+            }
         }
     )
     .post(

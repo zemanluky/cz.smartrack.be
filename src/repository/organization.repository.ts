@@ -1,7 +1,34 @@
 import {organization, TOrganization} from "../db/schema/organization";
 import {db} from "../db/db";
 import {TOrganizationData} from "../model/organization.model";
-import {eq} from "drizzle-orm";
+import {eq, count, SQL} from "drizzle-orm";
+
+/**
+ * Retrieves a list of organizations.
+ * @param limit
+ * @param offset
+ * @param filters
+ */
+export async function getOrganizations(limit: number = 25, offset: number = 0, filters: SQL|null = null): Promise<Array<TOrganization>> {
+    return await db.query.organization.findMany({
+        ...(filters ? {where: filters} : {}),
+        limit, offset
+    });
+}
+
+/**
+ * Gets the number of items in database based on given filters.
+ * @param filters
+ */
+export async function countItemsByFilter(filters: SQL|null = null): Promise<number> {
+    if (filters) {
+        const result = await db.select({ count: count() }).from(organization).where(filters);
+        return result[0].count;
+    }
+
+    const result = await db.select({ count: count() }).from(organization);
+    return result[0].count;
+}
 
 /**
  * Retrieves organization by its ID.

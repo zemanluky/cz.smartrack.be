@@ -1,20 +1,45 @@
-import {TOrganization} from "../db/schema/organization";
-import {TOrganizationData} from "../model/organization.model";
+import {organization, TOrganization} from "../db/schema/organization";
+import {TOrganizationData, TOrganizationListQuery} from "../model/organization.model";
 import {
+    countItemsByFilter,
     createOrganization, deleteOrganization,
     getOrganizationById,
-    getOrganizationByName,
+    getOrganizationByName, getOrganizations,
     updateOrganization
 } from "../repository/organization.repository";
 import {NotFound} from "../error/not-found.error";
 import {BadRequest} from "../error/bad-request.error";
+import {and, eq, ilike, SQL} from "drizzle-orm";
+import {TPaginationMetadata} from "../model/pagination.model";
 
 /**
  * Retrieves a paginated list of organizations, based on provided or default filters, and the query's offset.
  * @returns Array of retrieved organizations for the current page. Includes pagination metadata.
  */
-export async function listOrganizations(): Promise<Array<TOrganization>> {
+export async function listOrganizations(filters: TOrganizationListQuery): Promise<{ metadata: TPaginationMetadata, items: Array<TOrganization> }> {
+    const clampPerPageLimit = Math.min(Math.max(filters.limit, 1), 100);
+    const zeroIndexedPage = Math.max(filters.page, 1) - 1;
+    const offset = zeroIndexedPage * clampPerPageLimit;
 
+    const sqlFilters: Array<SQL> = [];
+
+    if (filters.name) sqlFilters.push(ilike(organization.name, `%${filters.name}%`));
+    if (filters.active !== undefined) sqlFilters.push(eq(organization.active, filters.active));
+
+    const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
+    const results = await getOrganizations(clampPerPageLimit, offset, sqlFilter);
+
+    return {
+        metadata: {
+            limit: clampPerPageLimit,
+            page: zeroIndexedPage + 1,
+            currentOffset: offset,
+            hasNextPage: results.length === clampPerPageLimit,
+            totalResults: await countItemsByFilter(),
+            filteredResults: await countItemsByFilter(sqlFilter)
+        },
+        items: results
+    }
 }
 
 /**
