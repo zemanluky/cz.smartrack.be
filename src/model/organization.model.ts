@@ -1,5 +1,5 @@
 import {t} from "elysia";
-import {paginationQuery} from "./pagination.model";
+import {paginationQuery, paginationWithSortingQuery} from "./pagination.model";
 
 /** Validation for list organizations endpoint */
 export const organizationListFilters = t.Composite([
@@ -7,7 +7,7 @@ export const organizationListFilters = t.Composite([
         name: t.Optional(t.String()),
         active: t.Optional(t.Boolean())
     }),
-    paginationQuery
+    paginationWithSortingQuery(['name'])
 ]);
 export type TOrganizationListQuery = typeof organizationListFilters.static;
 

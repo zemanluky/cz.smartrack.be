@@ -1,18 +1,24 @@
 import {organization, TOrganization} from "../db/schema/organization";
 import {db} from "../db/db";
 import {TOrganizationData} from "../model/organization.model";
-import {eq, count, SQL} from "drizzle-orm";
+import {eq, count, SQL, getTableColumns, asc, desc} from "drizzle-orm";
+import {user} from "../db/schema/user";
+import {getQueryOrderByConfig, TSortConfig} from "../util/database";
 
 /**
  * Retrieves a list of organizations.
  * @param limit
  * @param offset
  * @param filters
+ * @param sort
  */
-export async function getOrganizations(limit: number = 25, offset: number = 0, filters: SQL|null = null): Promise<Array<TOrganization>> {
+export async function getOrganizations(
+    limit: number = 25, offset: number = 0, filters: SQL|null = null, sort: TSortConfig|null = null
+): Promise<Array<TOrganization>> {
     return await db.query.organization.findMany({
         ...(filters ? {where: filters} : {}),
-        limit, offset
+        ...(sort !== null ? { orderBy: getQueryOrderByConfig(sort) } : {}),
+        limit, offset,
     });
 }
 
@@ -52,6 +58,24 @@ export async function getOrganizationByName(name: string): Promise<TOrganization
         where: eq(organization.name, name),
     });
     return result ?? null;
+}
+
+/**
+ * Retrieves organization by user's ID.
+ * If the user is not assigned to any organization, null is returned.
+ * @param userId
+ */
+export async function getOrganizationByUserId(userId: number): Promise<TOrganization|null> {
+    const result = await db.select({ ...getTableColumns(organization) })
+        .from(organization)
+        .innerJoin(user, eq(organization.id, user.organization_id))
+        .where(eq(user.id, userId))
+        .limit(1)
+    ;
+
+    if (result.length === 0) return null;
+
+    return result[0];
 }
 
 /**

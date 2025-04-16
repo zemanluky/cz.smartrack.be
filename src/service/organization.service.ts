@@ -17,9 +17,8 @@ import {TPaginationMetadata} from "../model/pagination.model";
  * @returns Array of retrieved organizations for the current page. Includes pagination metadata.
  */
 export async function listOrganizations(filters: TOrganizationListQuery): Promise<{ metadata: TPaginationMetadata, items: Array<TOrganization> }> {
-    const clampPerPageLimit = Math.min(Math.max(filters.limit, 1), 100);
-    const zeroIndexedPage = Math.max(filters.page, 1) - 1;
-    const offset = zeroIndexedPage * clampPerPageLimit;
+    const zeroIndexedPage = filters.page - 1;
+    const offset = zeroIndexedPage * filters.limit;
 
     const sqlFilters: Array<SQL> = [];
 
@@ -27,16 +26,20 @@ export async function listOrganizations(filters: TOrganizationListQuery): Promis
     if (filters.active !== undefined) sqlFilters.push(eq(organization.active, filters.active));
 
     const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
-    const results = await getOrganizations(clampPerPageLimit, offset, sqlFilter);
+    const results = await getOrganizations(
+        filters.limit, offset, sqlFilter, [filters.sort, filters.sort_by]
+    );
+
+    const filteredResultsCount = await countItemsByFilter(sqlFilter);
 
     return {
         metadata: {
-            limit: clampPerPageLimit,
-            page: zeroIndexedPage + 1,
-            currentOffset: offset,
-            hasNextPage: results.length === clampPerPageLimit,
-            totalResults: await countItemsByFilter(),
-            filteredResults: await countItemsByFilter(sqlFilter)
+            limit: filters.limit,
+            page: filters.page,
+            current_offset: offset,
+            has_next_page: filteredResultsCount >= (filters.page * filters.limit),
+            total_results: await countItemsByFilter(),
+            filtered_total_results: filteredResultsCount
         },
         items: results
     }
@@ -55,14 +58,6 @@ export async function retrieveOrganization(id: number): Promise<TOrganization> {
         throw new NotFound('The requested organization was not found.', 'organization');
 
     return result;
-}
-
-/**
- * Retrieves existing organization for a given user.
- * @param userId
- */
-export async function retrieveOrganizationForUser(userId: number): Promise<TOrganization> {
-
 }
 
 /**
