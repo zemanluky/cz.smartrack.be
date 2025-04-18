@@ -10,13 +10,13 @@ import {
 import {NotFound} from "../error/not-found.error";
 import {BadRequest} from "../error/bad-request.error";
 import {and, eq, ilike, SQL} from "drizzle-orm";
-import {TPaginationMetadata} from "../model/pagination.model";
+import {TPaginatedResult, TPaginationMetadata} from "../model/pagination.model";
 
 /**
  * Retrieves a paginated list of organizations, based on provided or default filters, and the query's offset.
  * @returns Array of retrieved organizations for the current page. Includes pagination metadata.
  */
-export async function listOrganizations(filters: TOrganizationListQuery): Promise<{ metadata: TPaginationMetadata, items: Array<TOrganization> }> {
+export async function listOrganizations(filters: TOrganizationListQuery): Promise<TPaginatedResult<TOrganization>> {
     const zeroIndexedPage = filters.page - 1;
     const offset = zeroIndexedPage * filters.limit;
 

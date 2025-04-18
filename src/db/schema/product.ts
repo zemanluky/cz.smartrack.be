@@ -1,18 +1,30 @@
-import {boolean, date, decimal, index, integer, pgTable, serial, timestamp, varchar} from "drizzle-orm/pg-core";
+import {
+    boolean,
+    date,
+    decimal,
+    index,
+    integer,
+    numeric,
+    pgTable,
+    serial,
+    timestamp,
+    uniqueIndex,
+    varchar
+} from "drizzle-orm/pg-core";
 import {organization} from "./organization";
-import {relations} from "drizzle-orm";
+import {relations, sql} from "drizzle-orm";
 import {shelfPosition, shelfPositionLog} from "./shelf";
 import {notificationLowStock} from "./notifications";
 
 export const product = pgTable('product', {
     id: serial().primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-    name: varchar({ length: 255 }).notNull().unique(),
-    price: decimal({ precision: 9, scale: 2 }).notNull(),
-    deleted_at: timestamp(),
+    name: varchar({ length: 255 }).notNull(),
+    price: numeric({ precision: 9, scale: 2, mode: 'number' }).notNull(),
+    deleted_at: timestamp().default(sql`NULL`),
 }, (table) => [
-    index('prod_name_idx').on(table.name),
     index('prod_price_idx').on(table.price),
+    uniqueIndex('uniq_product_name_org').on(table.name, table.organization_id)
 ]);
 
 export const productRelations = relations(product, ({ one, many }) => ({
@@ -23,10 +35,13 @@ export const productRelations = relations(product, ({ one, many }) => ({
     notifications_low_stock: many(notificationLowStock),
 }));
 
+export type TProduct = typeof product.$inferSelect;
+export type TProductInsert = typeof product.$inferInsert;
+
 export const productDiscount = pgTable('product_discount', {
     id: serial().primaryKey(),
     product_id: integer().notNull().references(() => product.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-    new_price: decimal({ precision: 9, scale: 2 }).notNull(),
+    new_price: numeric({ precision: 9, scale: 2, mode: 'number' }).notNull(),
     valid_from: date().notNull(),
     valid_until: date().notNull(),
     active: boolean().notNull().default(true)
@@ -38,3 +53,5 @@ export const productDiscount = pgTable('product_discount', {
 export const productDiscountRelations = relations(productDiscount, ({ one }) => ({
     product: one(product, { fields: [productDiscount.product_id], references: [product.id] }),
 }));
+
+export type TProductDiscount = typeof productDiscount.$inferSelect;

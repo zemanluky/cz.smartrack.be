@@ -15,6 +15,13 @@
       "when": 1743771542533,
       "tag": "0001_dapper_stingray",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1744988383483,
+      "tag": "0002_public_khan",
+      "breakpoints": true
     }
   ]
 }

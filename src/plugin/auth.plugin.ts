@@ -23,8 +23,8 @@ function unauthenticated(requirement: EAuthRequirement): void {
         throw new Unauthenticated();
 }
 
-type TUserContext = { user: {id: number, role: TUser['role']}|null }
-type TDeviceContext = { device: number|null }
+export type TAuthenticatedUser = {id: number, role: TUser['role']}
+export type TAuthenticatedDevice = number|null
 
 /**
  * Handles adding user or device data to the context &

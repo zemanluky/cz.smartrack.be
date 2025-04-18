@@ -2,7 +2,7 @@ import {organization, TOrganization} from "../db/schema/organization";
 import {db} from "../db/db";
 import {TOrganizationData} from "../model/organization.model";
 import {eq, count, SQL, getTableColumns, asc, desc} from "drizzle-orm";
-import {user} from "../db/schema/user";
+import {TUser, user} from "../db/schema/user";
 import {getQueryOrderByConfig, TSortConfig} from "../util/database";
 
 /**
@@ -60,15 +60,20 @@ export async function getOrganizationByName(name: string): Promise<TOrganization
     return result ?? null;
 }
 
+type TGetOrganizationByUserResult = { organization: TOrganization|null, user: TUser };
+
 /**
  * Retrieves organization by user's ID.
  * If the user is not assigned to any organization, null is returned.
  * @param userId
+ * @returns Object with assigned user's organization and the user themselves.
+ *          When the user does not have an organization assigned, object with only the user is returned.
+ *          In case the user does not exist, null is returned.
  */
-export async function getOrganizationByUserId(userId: number): Promise<TOrganization|null> {
-    const result = await db.select({ ...getTableColumns(organization) })
+export async function getOrganizationByUserId(userId: number): Promise<TGetOrganizationByUserResult|null> {
+    const result = await db.select()
         .from(organization)
-        .innerJoin(user, eq(organization.id, user.organization_id))
+        .rightJoin(user, eq(organization.id, user.organization_id))
         .where(eq(user.id, userId))
         .limit(1)
     ;
