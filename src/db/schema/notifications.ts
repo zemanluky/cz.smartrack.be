@@ -1,7 +1,7 @@
 import {check, index, integer, pgEnum, pgTable, serial, timestamp} from "drizzle-orm/pg-core";
 import {organization} from "./organization";
 import {relations, sql} from "drizzle-orm";
-import {shelfPositionDevice} from "./device";
+import {shelfDevice} from "./device";
 import {shelfPosition} from "./shelf";
 import {product} from "./product";
 
@@ -42,11 +42,11 @@ export const notificationBatteryStateEnum = pgEnum('notification_battery_state',
 
 export const notificationLowBattery = pgTable('notification_low_battery', {
     id: integer().primaryKey().references(() => notification.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-    shelf_position_device_id: integer().notNull().references(() => shelfPositionDevice.id, ),
+    shelf_position_device_id: integer().notNull().references(() => shelfDevice.id, ),
     battery_state: notificationBatteryStateEnum().notNull(),
 });
 
 export const notificationLowBatteryRelations = relations(notificationLowBattery, ({ one }) => ({
     notification: one(notification, { fields: [notificationLowBattery.id], references: [notification.id] }),
-    shelf_position_device: one(shelfPositionDevice, { fields: [notificationLowBattery.shelf_position_device_id], references: [shelfPositionDevice.id] }),
+    shelf_position_device: one(shelfDevice, { fields: [notificationLowBattery.shelf_position_device_id], references: [shelfDevice.id] }),
 }));

@@ -1,5 +1,5 @@
-import Elysia from "elysia";
-import {verifyUserJwt} from "../util/jwt";
+import Elysia, {Context} from "elysia";
+import {verifyDeviceJwt, verifyUserJwt} from "../util/jwt";
 import {Unauthenticated} from "../error/unauthenticated.error";
 import {TUser} from "../db/schema/user";
 import {Unauthorized} from "../error/unauthorized.error";
@@ -23,14 +23,10 @@ function unauthenticated(requirement: EAuthRequirement): void {
         throw new Unauthenticated();
 }
 
-export type TAuthenticatedUser = {id: number, role: TUser['role']}
-export type TAuthenticatedDevice = number|null
+export type TAuthenticatedUser = {id: number, role: TUser['role']};
+export type TAuthenticatedDevice = number|null;
 
-/**
- * Handles adding user or device data to the context &
- * early ending a request if the auth requirements are not met.
- */
-export const authPlugin = new Elysia({ name: 'auth' })
+export const bearerDerivePlugin = new Elysia({ name: 'bearer-derive' })
     .derive(({ headers }) => {
         const authHeader = headers['Authorization'];
 
@@ -38,6 +34,16 @@ export const authPlugin = new Elysia({ name: 'auth' })
 
         return { bearer: authHeader.slice(7) };
     })
+    .as('plugin')
+;
+
+
+/**
+ * Handles adding authenticated user's data to the context &
+ * early ending the request if the auth requirements are not met.
+ */
+export const authUserPlugin = new Elysia({ name: 'auth-user' })
+    .use(bearerDerivePlugin)
     .macro({
         /**
          * Tries to authenticate the user from the request context.
@@ -64,24 +70,46 @@ export const authPlugin = new Elysia({ name: 'auth' })
 
                 return { user: { id: verifiedUser.userId, role: verifiedUser.role } };
             },
-        }),
+        })
+    })
+    .as('plugin')
+;
 
+/**
+ * Handles adding authenticated device's data to the context &
+ * early ending the request if the auth requirements are not met.
+ */
+export const authDevicePlugin = new Elysia({ name: 'auth-device' })
+    .use(bearerDerivePlugin)
+    .macro({
         /**
          * Tries to authenticate the device from the request context.
          * @param requirement Specify the requirement for device authentication.
          *                    By default, the requirement is set to null which means the device's auth state won't be determined.
          */
-        authDevice: (requirement: EAuthRequirement|null = null) => {
-            if (requirement === null) return;
-        },
+        authDevice: (requirement: EAuthRequirement|null = null) => ({
+            resolve: async ({ bearer }) => {
+                if (requirement === null) return { device: null };
 
-        /**
-         * Verifies that the user accessing a given endpoint is in one of a given role.
-         * @param requiredUserRole
-         */
-        requireRole: (requiredUserRole: Array<TUser['role']>|null = null) => ({
+                if (!bearer) {
+                    unauthenticated(requirement);
+                    return { device: null };
+                }
 
-        })
+                const verifiedDevice = await verifyDeviceJwt(bearer);
+
+                if (!verifiedDevice) {
+                    unauthenticated(requirement);
+                    return { device: null };
+                }
+
+                if (requirement === EAuthRequirement.Denied) throw new Unauthorized();
+
+                return { device: verifiedDevice };
+            },
+        }),
     })
     .as('plugin')
 ;
+
+export type TAuthResolvedContext = Context & { device: TAuthenticatedDevice|null, user: TAuthenticatedUser|null };

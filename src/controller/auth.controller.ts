@@ -1,8 +1,12 @@
 import Elysia, {error, t} from "elysia";
-import {invalidateToken, login, refreshAuth as refreshAuthTokens} from "../service/auth.service";
+import {authDevice, invalidateToken, login, refreshAuth as refreshAuthTokens} from "../service/auth.service";
 import {differenceInSeconds} from "date-fns";
+import {authResponse, deviceAuthData, loginData} from "../model/auth.model";
+import {authUserPlugin, authDevicePlugin, EAuthRequirement, TAuthResolvedContext} from "../plugin/auth.plugin";
 
 export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
+    .use(authUserPlugin)
+    .use(authDevicePlugin)
     .post('/login', async ({ body, cookie: { refreshAuth } }) => {
         const {access, refresh} = await login(body.email, body.password);
 
@@ -17,19 +21,12 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 
         return { access };
     }, {
-        body: t.Object({
-            email: t.String(),
-            password: t.String()
-        }),
-        cookie: t.Cookie({
-            refreshAuth: t.String()
-        }),
+        body: loginData,
+        cookie: t.Cookie({ refreshAuth: t.String() }),
         detail: {
             description: 'Generates JWT access and refresh token for user authenticated by provided credentials. The refresh token is set to an HTTP only cookie.'
         },
-        response: t.Object({
-            access: t.String()
-        })
+        response: authResponse
     })
     .get('/token-refresh', async ({ cookie: { refreshAuth } }) => {
         if (!refreshAuth.value) throw error(401);
@@ -45,15 +42,11 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 
         return { access };
     }, {
-        cookie: t.Cookie({
-            refreshAuth: t.String()
-        }),
-        response: t.Object({
-            access: t.String()
-        }),
-        detail: {
-            description: 'Generates refreshed access and refresh tokens based on current refresh token in the cookie.'
+        cookie: t.Cookie({ refreshAuth: t.String() }),
+        response: {
+            200: authResponse
         },
+        detail: {description: 'Generates refreshed access and refresh tokens based on current refresh token in the cookie.'},
     })
     .delete('/logout', async ({ set, cookie: { refreshAuth } }) => {
         if (refreshAuth.value) await invalidateToken(refreshAuth.value);
@@ -62,23 +55,26 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         set.status = 204;
         return;
     }, {
-        cookie: t.Cookie({
-            refreshAuth: t.String()
-        }),
-        detail: {
-            description: 'Invalidates current refresh token and removes the cookie.'
-        },
+        cookie: t.Cookie({ refreshAuth: t.String() }),
+        detail: { description: 'Invalidates current refresh token and removes the cookie.' },
     })
-    .post('/device-login', ({}) => {
-
+    .post('/device-login', async ({ body }) => {
+        const accessToken = await authDevice(body.serial_number, body.device_secret);
+        return { access: accessToken };
     }, {
+        body: deviceAuthData,
+        response: {
+            200: authResponse
+        },
         detail: {
             description: 'Generates short-lived access token for an IoT gateway based on its serial number and device secret.'
         },
     })
-    .get('/identity', ({}) => {
+    .get('/identity', (ctx) => {
 
     }, {
+        authUser: EAuthRequirement.Optional,
+        authDevice: EAuthRequirement.Optional,
         detail: {
             description: 'Retrieves user\'s identity based on the provided access token.'
         },

@@ -1,6 +1,5 @@
 import {getUserByEmail, getUserById} from "../repository/user.repository";
-import {error} from "elysia";
-import {generateUserJwt, generateUserRefreshJwt, verifyUserRefreshJwt} from "../util/jwt";
+import {generateDeviceJwt, generateUserJwt, generateUserRefreshJwt, verifyUserRefreshJwt} from "../util/jwt";
 import {TUser} from "../db/schema/user";
 import {addDays} from "date-fns";
 import {
@@ -11,6 +10,7 @@ import {
 import * as R from "remeda";
 import {Unauthenticated} from "../error/unauthenticated.error";
 import environment from "../util/environment";
+import {findDeviceBySerial} from "../repository/device.repository";
 
 const CONFIG_MAX_REFRESH_TOKENS: number = environment.CONFIG_MAX_REFRESH_TOKENS || 5;
 const CONFIG_REFRESH_TOKEN_DAYS_LIFE: number = environment.CONFIG_REFRESH_TOKEN_DAYS_LIFE || 7;
@@ -68,7 +68,15 @@ export async function login(email: string, password: string): Promise<TTokenPair
  * @param deviceSecret
  */
 export async function authDevice(serialNumber: string, deviceSecret: string): Promise<string> {
+    const device = await findDeviceBySerial(serialNumber);
 
+    if (!device) throw new Unauthenticated('Provided device credentials are invalid.', 'invalid_device_credentials');
+
+    const isSecretMatch = await Bun.password.verify(deviceSecret, device.device_secret);
+
+    if (!isSecretMatch) throw new Unauthenticated('Provided credentials are invalid.', 'invalid_credentials');
+
+    return generateDeviceJwt(device.id);
 }
 
 /**

@@ -1,20 +1,22 @@
-import {check, integer, pgEnum, pgTable, serial, timestamp, varchar} from "drizzle-orm/pg-core";
+import {check, integer, pgEnum, pgTable, serial, timestamp, unique, varchar} from "drizzle-orm/pg-core";
 import {organization} from "./organization";
 import {relations, sql} from "drizzle-orm";
 import {product} from "./product";
-import {shelfPositionDevice} from "./device";
+import {shelfDevice} from "./device";
 import {notificationLowStock} from "./notifications";
 import {user} from "./user";
 
 export const shelf = pgTable('shelf', {
     id: serial().primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
+    device_id: integer().notNull().references(() => shelfDevice.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     shelf_name: varchar({ length: 255 }).notNull(),
     shelf_store_location: varchar({ length: 255 })
 });
 
 export const shelfRelations = relations(shelf, ({ one, many }) => ({
     shelf_positions: many(shelfPosition),
+    device: one(shelfDevice, { fields: [shelf.device_id], references: [shelfDevice.id] }),
     organization: one(organization, { fields: [shelf.organization_id], references: [organization.id] }),
 }));
 
@@ -22,12 +24,12 @@ export const shelfPosition = pgTable('shelf_position', {
     id: serial().primaryKey(),
     shelf_id: integer().notNull().references(() => shelf.id),
     product_id: integer().references(() => product.id, { onUpdate: 'cascade', onDelete: 'set null' }),
-    device_id: integer().notNull().references(() => shelfPositionDevice.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     row: integer().notNull(),
     column: integer().notNull(),
     low_stock_threshold_percent: integer().notNull().default(20),
     max_current_product_capacity: integer(),
 }, (table) => [
+    unique('row_column_shelf_unique').on(table.shelf_id, table.row, table.column),
     check('minmax_low_stock_threshold', sql`${table.low_stock_threshold_percent} > 0 AND ${table.low_stock_threshold_percent} < 100`),
     check('min_product_capacity', sql`${table.max_current_product_capacity} > 0`),
 ]);
@@ -35,7 +37,6 @@ export const shelfPosition = pgTable('shelf_position', {
 export const shelfPositionRelations = relations(shelfPosition, ({ one, many }) => ({
     shelf: one(shelf, { fields: [shelfPosition.shelf_id], references: [shelf.id] }),
     product: one(product, { fields: [shelfPosition.product_id], references: [product.id] }),
-    device: one(shelfPositionDevice, { fields: [shelfPosition.device_id], references: [shelfPositionDevice.id] }),
     shelf_position_logs: many(shelfPositionLog),
     notifications_low_stock: many(notificationLowStock)
 }));

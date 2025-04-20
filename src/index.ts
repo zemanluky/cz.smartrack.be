@@ -2,7 +2,7 @@ import Elysia from "elysia";
 import swagger from "@elysiajs/swagger";
 import {authController} from "./controller/auth.controller";
 import {errorHandlerPlugin} from "./plugin/error-handler.plugin";
-import {authPlugin} from "./plugin/auth.plugin";
+import {authDevicePlugin, authUserPlugin} from "./plugin/auth.plugin";
 import {organizationController} from "./controller/organization.controller";
 import {notificationController} from "./controller/notification.controller";
 import {productController} from "./controller/product.controller";
@@ -13,7 +13,8 @@ import {userController} from "./controller/user.controller";
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
-    .use(authPlugin)
+    .use(authUserPlugin)
+    .use(authDevicePlugin)
     .use(swagger({
         documentation: {
             info: {
