@@ -22,6 +22,13 @@
       "when": 1744988383483,
       "tag": "0002_public_khan",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1745115194791,
+      "tag": "0003_good_kingpin",
+      "breakpoints": true
     }
   ]
 }

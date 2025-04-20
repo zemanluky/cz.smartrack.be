@@ -1,0 +1,2 @@
+ALTER TABLE "product_discount" ADD COLUMN "discount_percent" integer NOT NULL;--> statement-breakpoint
+ALTER TABLE "product_discount" ADD CONSTRAINT "minmax_discount_percent_check" CHECK ("product_discount"."discount_percent" >= 0 AND "product_discount"."discount_percent" <= 100);

@@ -55,7 +55,7 @@ export async function listProducts(userId: number, filters: TListProductQuery): 
 
     const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
     const results = await getProducts(
-        organizationId, filters.limit, offset, sqlFilter, [filters.sort, filters.sort_by]
+        organizationId, filters.limit, offset, sqlFilter, [filters.sort ?? 'asc', filters.sort_by ?? 'name']
     );
 
     const filteredResultsCount = await countProductsByFilter(organizationId, sqlFilter);

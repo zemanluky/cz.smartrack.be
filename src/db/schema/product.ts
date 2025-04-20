@@ -1,5 +1,5 @@
 import {
-    boolean,
+    boolean, check,
     date,
     decimal,
     index,
@@ -42,12 +42,14 @@ export const productDiscount = pgTable('product_discount', {
     id: serial().primaryKey(),
     product_id: integer().notNull().references(() => product.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
     new_price: numeric({ precision: 9, scale: 2, mode: 'number' }).notNull(),
-    valid_from: date().notNull(),
-    valid_until: date().notNull(),
+    discount_percent: integer().notNull(),
+    valid_from: date({ mode: 'date' }).notNull(),
+    valid_until: date({ mode: 'date' }).notNull(),
     active: boolean().notNull().default(true)
 }, (table) => [
     index('prod_disc_valid_from_idx').on(table.valid_from.desc()),
     index('prod_disc_valid_until_idx').on(table.valid_until.desc()),
+    check('minmax_discount_percent_check', sql`${table.discount_percent} >= 0 AND ${table.discount_percent} <= 100`)
 ]);
 
 export const productDiscountRelations = relations(productDiscount, ({ one }) => ({
@@ -55,3 +57,4 @@ export const productDiscountRelations = relations(productDiscount, ({ one }) => 
 }));
 
 export type TProductDiscount = typeof productDiscount.$inferSelect;
+export type TProductDiscountInsert = typeof productDiscount.$inferInsert;

@@ -27,7 +27,7 @@ export async function listOrganizations(filters: TOrganizationListQuery): Promis
 
     const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
     const results = await getOrganizations(
-        filters.limit, offset, sqlFilter, [filters.sort, filters.sort_by]
+        filters.limit, offset, sqlFilter, [filters.sort ?? 'asc', filters.sort_by ?? 'name']
     );
 
     const filteredResultsCount = await countItemsByFilter(sqlFilter);
