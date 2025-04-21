@@ -1,5 +1,5 @@
 import Elysia, {t} from "elysia";
-import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
+import {authUserPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {deleteProduct, getProductById, listProducts, restoreProduct, saveProduct} from "../service/product.service";
 import {listProductsQuery, productResponse, saveProductData} from "../model/product.model";
 import {transformProduct} from "../util/transformers/product.transformer";
@@ -8,7 +8,7 @@ import {paginatedResponse} from "../model/pagination.model";
 import * as R from 'remeda';
 
 export const productController = new Elysia({ prefix: '/product', tags: ['Product'] })
-    .use(authPlugin)
+    .use(authUserPlugin)
     .guard({ authUser: EAuthRequirement.Required })
     .get('/', async ({ query, user }) => {
         const filteredQuery = user!.role !== 'sys_admin'

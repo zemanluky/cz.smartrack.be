@@ -1,5 +1,5 @@
 import Elysia, {t} from "elysia";
-import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
+import {authUserPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {
     listProductDiscountsQuery,
     productDiscountData,
@@ -16,7 +16,7 @@ import {transformProductDiscount, transformProductDiscountDetail} from "../util/
 import {paginatedResponse} from "../model/pagination.model";
 
 export const productDiscountController = new Elysia({ prefix: '/product/:id/discount', tags: ['Product Discount'] })
-    .use(authPlugin)
+    .use(authUserPlugin)
     .guard({
         params: t.Object({ id: t.Number() }),
         authUser: EAuthRequirement.Required
