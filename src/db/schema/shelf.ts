@@ -13,12 +13,13 @@ export const shelf = pgTable('shelf', {
     shelf_name: varchar({ length: 255 }).notNull(),
     shelf_store_location: varchar({ length: 255 })
 });
-
 export const shelfRelations = relations(shelf, ({ one, many }) => ({
     shelf_positions: many(shelfPosition),
     device: one(shelfDevice, { fields: [shelf.device_id], references: [shelfDevice.id] }),
     organization: one(organization, { fields: [shelf.organization_id], references: [organization.id] }),
 }));
+export type TShelf = typeof shelf.$inferSelect;
+export type TShelfInsert = typeof shelf.$inferInsert;
 
 export const shelfPosition = pgTable('shelf_position', {
     id: serial().primaryKey(),
@@ -33,16 +34,16 @@ export const shelfPosition = pgTable('shelf_position', {
     check('minmax_low_stock_threshold', sql`${table.low_stock_threshold_percent} > 0 AND ${table.low_stock_threshold_percent} < 100`),
     check('min_product_capacity', sql`${table.max_current_product_capacity} > 0`),
 ]);
-
 export const shelfPositionRelations = relations(shelfPosition, ({ one, many }) => ({
     shelf: one(shelf, { fields: [shelfPosition.shelf_id], references: [shelf.id] }),
     product: one(product, { fields: [shelfPosition.product_id], references: [product.id] }),
     shelf_position_logs: many(shelfPositionLog),
     notifications_low_stock: many(notificationLowStock)
 }));
+export type TShelfPosition = typeof shelfPosition.$inferSelect;
+export type TShelfPositionInsert = typeof shelfPosition.$inferInsert;
 
 export const shelfPositionLogTypeEnum = pgEnum('shelf_position_log_type', ['refill', 'auto_check']);
-
 export const shelfPositionLog = pgTable('shelf_position_log', {
     id: serial().primaryKey(),
     type: shelfPositionLogTypeEnum().notNull(),
@@ -54,9 +55,10 @@ export const shelfPositionLog = pgTable('shelf_position_log', {
 }, (table) => [
     check('minmax_amount_percent', sql`${table.amount_percent} >= 0 AND ${table.amount_percent} <= 100`),
 ]);
-
 export const shelfPositionLogRelations = relations(shelfPositionLog, ({ one }) => ({
     shelf_position: one(shelfPosition, { fields: [shelfPositionLog.shelf_position_id], references: [shelfPosition.id] }),
     product: one(product, { fields: [shelfPositionLog.product_id], references: [product.id] }),
     user: one(user, { fields: [shelfPositionLog.user_id], references: [user.id] }),
 }));
+export type TShelfPositionLogEntry = typeof shelfPositionLog.$inferSelect;
+export type TShelfPositionLogEntryInsert = typeof shelfPositionLog.$inferInsert;

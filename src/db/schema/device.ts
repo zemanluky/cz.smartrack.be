@@ -13,7 +13,7 @@ export const shelfDevice = pgTable('shelf_device', {
     check('valid_battery_range_check', sql`${table.current_battery_percent} >= 0 AND ${table.current_battery_percent} <= 100`),
 ]);
 export const shelfPositionDeviceRelations = relations(shelfDevice, ({ one, many }) => ({
-    shelf_position_device_status_logs: many(shelfDeviceStatusLog),
+    shelf_device_status_logs: many(shelfDeviceStatusLog),
     low_battery_notifications: many(notificationLowBattery),
     shelf: one(shelf)
 }));
