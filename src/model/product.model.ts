@@ -2,7 +2,7 @@ import {t} from "elysia";
 import {paginationWithSortingQuery} from "./pagination.model";
 
 export const listProductsQuery = t.Composite([
-    paginationWithSortingQuery([]),
+    paginationWithSortingQuery(['name', 'price']),
     t.Partial(t.Object({
         name: t.String(),
         price_min: t.Number(),
@@ -26,5 +26,10 @@ export const productResponse = t.Object({
     price: t.Number(),
     is_deleted: t.Boolean(),
     organization_id: t.Optional(t.Number())
+}, {
+    examples: [
+        { id: 18, name: 'Royal Crown Cola 330ml', price: 49, is_deleted: false },
+        { id: 20, name: 'Mutti, diced tomatoes 400g', price: 79, is_deleted: false }
+    ]
 });
 export type TProductResponse = typeof productResponse.static;
