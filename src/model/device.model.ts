@@ -7,6 +7,8 @@ export const listDevicesQuery = t.Composite([
         serial_number: t.String({ description: 'Searches for devices by their serial number containing part of the given search query.' }),
         battery_percent_min: t.Number({ minimum: 0, maximum: 100, description: 'Filters devices with current battery percentage higher than filter value.' }),
         battery_percent_max: t.Number({ minimum: 0, maximum: 100, description: 'Filters devices with current battery percentage lower than filter value.' }),
+        last_connected_min: t.Date({ description: 'Filters devices connected later than filter value.' }),
+        last_connected_max: t.Date({ description: 'Filters devices connected before than filter value.' }),
     }))
 ]);
 export type TListDeviceQuery = typeof listDevicesQuery.static;

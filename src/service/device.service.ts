@@ -26,6 +26,10 @@ export async function listDevices(filters: TListDeviceQuery): Promise<TPaginated
     const sqlFilters: Array<SQL> = [];
 
     if (filters.serial_number !== undefined) sqlFilters.push(ilike(shelfDevice.serial_number, `%${filters.serial_number}%`));
+    if (filters.battery_percent_min !== undefined) sqlFilters.push(gte(shelfDevice.current_battery_percent, filters.battery_percent_min));
+    if (filters.battery_percent_max !== undefined) sqlFilters.push(lte(shelfDevice.current_battery_percent, filters.battery_percent_max));
+    if (filters.last_connected_min !== undefined) sqlFilters.push(gte(shelfDevice.last_connected, filters.last_connected_min));
+    if (filters.last_connected_max !== undefined) sqlFilters.push(lte(shelfDevice.last_connected, filters.last_connected_max));
 
     const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
     const results = await findShelfDevices(
