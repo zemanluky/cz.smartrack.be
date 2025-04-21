@@ -1,5 +1,5 @@
 import {TPaginatedResult} from "../model/pagination.model";
-import {shelfDevice, TShelfDevice} from "../db/schema/device";
+import {shelfDevice, shelfDeviceStatusLog, TShelfDevice, TShelfDeviceStatusLog} from "../db/schema/device";
 import {
     countShelfDevicesByFilter,
     deleteDevice,
@@ -9,9 +9,13 @@ import {
 } from "../repository/device.repository";
 import {NotFound} from "../error/not-found.error";
 import {BadRequest} from "../error/bad-request.error";
-import {TDeviceData, TListDeviceQuery} from "../model/device.model";
-import {and, ilike, SQL} from "drizzle-orm";
-import {countProductDiscountsByFilter} from "../repository/product-discount.repository";
+import {TDeviceData, TDeviceStatusData, TListDeviceQuery, TListDeviceStatusLogsQuery} from "../model/device.model";
+import {and, gte, ilike, lte, SQL} from "drizzle-orm";
+import {
+    countShelfDeviceLogsByFilter,
+    findShelfDeviceLogs,
+    insertDeviceStatus
+} from "../repository/device-status.repository";
 
 /**
  * Lists devices, with the possibility to filter them.
@@ -121,4 +125,62 @@ export async function removeDevice(id: number): Promise<void> {
         );
 
     await deleteDevice(id);
+}
+
+/**
+ * Lists log entries for a given device.
+ */
+export async function listDeviceStatusLogs(id: number, filters: TListDeviceStatusLogsQuery): Promise<TPaginatedResult<TShelfDeviceStatusLog>> {
+    // verify the device exists...
+    const device = await getDeviceById(id);
+
+    const zeroIndexedPage = filters.page - 1;
+    const offset = zeroIndexedPage * filters.limit;
+    const sqlFilters: Array<SQL> = [];
+
+    if (filters.timestamp_min !== undefined) sqlFilters.push(gte(shelfDeviceStatusLog.timestamp, filters.timestamp_min));
+    if (filters.timestamp_max !== undefined) sqlFilters.push(lte(shelfDeviceStatusLog.timestamp, filters.timestamp_max));
+    if (filters.battery_percent_min !== undefined) sqlFilters.push(gte(shelfDeviceStatusLog.battery_percent, filters.battery_percent_min));
+    if (filters.battery_percent_max !== undefined) sqlFilters.push(lte(shelfDeviceStatusLog.battery_percent, filters.battery_percent_max));
+
+    const sqlFilter = sqlFilters.length > 0 ? and(...sqlFilters) : null;
+    const results = await findShelfDeviceLogs(
+        device.id, filters.limit, offset, sqlFilter, [filters.sort ?? 'asc', filters.sort_by ?? 'id']
+    );
+
+    const filteredResultsCount = await countShelfDeviceLogsByFilter(device.id, sqlFilter);
+
+    return {
+        metadata: {
+            limit: filters.limit,
+            page: filters.page,
+            current_offset: offset,
+            has_next_page: filteredResultsCount >= (filters.page * filters.limit),
+            total_results: await countShelfDeviceLogsByFilter(device.id),
+            filtered_total_results: filteredResultsCount
+        },
+        items: results
+    }
+}
+
+/**
+ * Updates current status (battery percentage) of a given device.
+ * This method should be used by the device to update its own status.
+ * @param data
+ * @param id
+ */
+export async function pushDeviceStatus(data: TDeviceStatusData, id: number): Promise<void> {
+    const device = await findDeviceById(id);
+
+    if (!device)
+        throw new Error('Cannot push new device status since the device does not exist.');
+
+    const connectionTime = new Date();
+
+    await updateDevice(device.id, { current_battery_percent: data.current_battery, last_connected: connectionTime });
+    await insertDeviceStatus({
+        shelf_device_id: id,
+        battery_percent: data.current_battery,
+        timestamp: connectionTime
+    });
 }

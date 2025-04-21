@@ -4,17 +4,17 @@ import {
     deviceData,
     deviceDetailResponse,
     deviceResponse,
-    deviceSerialExistsResponse,
-    listDevicesQuery
+    deviceSerialExistsResponse, deviceStatusResponse,
+    listDevicesQuery, listDeviceStatusLogsQuery
 } from "../model/device.model";
 import {
     getDeviceById,
     verifyDeviceExists,
     removeDevice,
     listDevices,
-    createDevice, replaceDevice
+    createDevice, replaceDevice, listDeviceStatusLogs
 } from "../service/device.service";
-import {transformDevice, transformDeviceDetail} from "../util/transformers/device.transformer";
+import {transformDevice, transformDeviceDetail, transformDeviceLog} from "../util/transformers/device.transformer";
 import {errorResponse} from "../model/error.model";
 import {paginatedResponse} from "../model/pagination.model";
 
@@ -84,6 +84,19 @@ export const deviceController = new Elysia({ prefix: '/device', tags: ['Device']
             400: errorResponse,
             404: errorResponse,
             500: errorResponse
+        }
+    })
+    .get('/:id/logs', async ({ params, query }) => {
+        const { metadata, items } = await listDeviceStatusLogs(params.id, query);
+        return {
+            metadata,
+            items: items.map(i => transformDeviceLog(i))
+        }
+    }, {
+        query: listDeviceStatusLogsQuery,
+        detail: { description: 'Retrieves status logs for a given device.' },
+        response: {
+            200: paginatedResponse(deviceStatusResponse)
         }
     })
 ;

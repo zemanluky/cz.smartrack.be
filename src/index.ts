@@ -10,6 +10,8 @@ import {productDiscountController} from "./controller/product-discount.controlle
 import {shelfController} from "./controller/shelf.controller";
 import {shelfPositionController} from "./controller/shelf-position.controller";
 import {userController} from "./controller/user.controller";
+import {deviceController} from "./controller/device.controller";
+import {deviceStatusController} from "./controller/device-status.controller";
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
@@ -34,6 +36,8 @@ const app = new Elysia()
         }
     }))
     .use(authController)
+    .use(deviceController)
+    .use(deviceStatusController)
     .use(notificationController)
     .use(organizationController)
     .use(productController)
