@@ -24,6 +24,7 @@ WORKDIR /app
 
 # copy the compiled binary from the build image
 COPY --from=build /app/server /app/server
+COPY --from=build /app/src/db/ /app/src/db
 
 # add unprivileged user
 RUN groupadd -g 1869 bun

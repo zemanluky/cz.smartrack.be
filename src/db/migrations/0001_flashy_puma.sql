@@ -1,0 +1,1 @@
+ALTER TABLE "shelf_device" ALTER COLUMN "device_secret" SET DATA TYPE varchar(130);

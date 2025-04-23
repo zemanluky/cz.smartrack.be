@@ -6,7 +6,7 @@ import {shelf} from "./shelf";
 export const shelfDevice = pgTable('shelf_device', {
     id: integer().generatedByDefaultAsIdentity({ name: 'shelf_device_id_sequence' }).primaryKey(),
     serial_number: varchar({ length: 255 }).notNull().unique(),
-    device_secret: char({ length: 72 }).notNull(),
+    device_secret: varchar({ length: 130 }).notNull(),
     current_battery_percent: integer(),
     last_connected: timestamp()
 }, (table) => [
