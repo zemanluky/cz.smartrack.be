@@ -12,6 +12,13 @@ import {shelfPositionController} from "./controller/shelf-position.controller";
 import {userController} from "./controller/user.controller";
 import {deviceController} from "./controller/device.controller";
 import {deviceStatusController} from "./controller/device-status.controller";
+import { db } from "./db/db";
+import { migrate } from 'drizzle-orm/bun-sql/migrator';
+
+if (Bun.env.NODE_ENV === 'production') {
+    // migrate before starting the server
+    await migrate(db, {migrationsFolder: './src/db/migrations/'});
+}
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
