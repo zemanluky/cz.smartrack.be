@@ -38,3 +38,4 @@ services:
       MAILER_PORT: 1025
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: http://localhost:${APP_PORT}
+      JWT_SECRET: ${JWT_SECRET}

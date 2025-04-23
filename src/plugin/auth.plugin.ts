@@ -28,7 +28,7 @@ export type TAuthenticatedDevice = number|null;
 
 export const bearerDerivePlugin = new Elysia({ name: 'bearer-derive' })
     .derive(({ headers }) => {
-        const authHeader = headers['Authorization'];
+        const authHeader = headers['authorization'];
 
         if (!authHeader || !authHeader.startsWith('Bearer')) return { bearer: null };
 

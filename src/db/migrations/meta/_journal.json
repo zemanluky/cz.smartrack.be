@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1743466774231,
-      "tag": "0000_material_triton",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1743771542533,
-      "tag": "0001_dapper_stingray",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1744988383483,
-      "tag": "0002_public_khan",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1745115194791,
-      "tag": "0003_good_kingpin",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1745166775674,
-      "tag": "0004_tidy_marvel_apes",
+      "when": 1745366265596,
+      "tag": "0000_polite_sleeper",
       "breakpoints": true
     }
   ]

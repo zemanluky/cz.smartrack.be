@@ -1,8 +1,9 @@
-import Elysia, {ParseError, ValidationError} from "elysia";
+import Elysia, {InvalidCookieSignature, ParseError, ValidationError} from "elysia";
 import {NotFound} from "../error/not-found.error";
 import {DEFAULT_MESSAGE as DEFAULT_UNAUTHENTICATED_MESSAGE, Unauthenticated} from "../error/unauthenticated.error";
 import * as R from 'remeda';
 import {DEFAULT_MESSAGE as DEFAULT_UNAUTHORIZED_MESSAGE, Unauthorized} from "../error/unauthorized.error";
+import {ElysiaCustomStatusResponse} from "elysia/dist/error";
 
 type TBaseErrorResponse = {
     error: {
@@ -11,7 +12,7 @@ type TBaseErrorResponse = {
         metadata: {
             summary: string,
             stack: string|null
-        }
+        } | null
     }
 }
 
@@ -21,14 +22,20 @@ type TBaseErrorResponse = {
  * @param message
  * @param code
  */
-function createBaseErrorObject(error: Error, message: string, code: string): TBaseErrorResponse {
+function createBaseErrorObject(
+    error: Error|InvalidCookieSignature|ElysiaCustomStatusResponse<number, number, number>,
+    message: string,
+    code: string
+): TBaseErrorResponse {
+    console.log(error)
+
     return {
         error: {
             code: code,
             message: message,
             metadata: {
-                stack: error.stack || null,
-                summary: error.message
+                stack: error instanceof Error ? (error.stack || null) : null,
+                summary: error instanceof Error ? error.message : 'Unknown'
             }
         }
     };
@@ -41,6 +48,8 @@ function createBaseErrorObject(error: Error, message: string, code: string): TBa
 export const errorHandlerPlugin = new Elysia({ name: 'error-handler' })
     .error({ NotFound, Unauthenticated, Unauthorized })
     .onError(({ code, error, set }) => {
+        console.log(code);
+
         switch(code) {
             case 'Unauthorized':
                 set.status = 403;
@@ -83,6 +92,13 @@ export const errorHandlerPlugin = new Elysia({ name: 'error-handler' })
 
             case 'INTERNAL_SERVER_ERROR':
             case 'UNKNOWN':
+                set.status = 'Internal Server Error';
+                return createBaseErrorObject(
+                    error, 'Some unexpected error happened during the processing of your request. Please, try again later.',
+                    'internal_server_error'
+                );
+
+            default:
                 set.status = 'Internal Server Error';
                 return createBaseErrorObject(
                     error, 'Some unexpected error happened during the processing of your request. Please, try again later.',

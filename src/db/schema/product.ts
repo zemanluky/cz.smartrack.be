@@ -17,7 +17,7 @@ import {shelfPosition, shelfPositionLog} from "./shelf";
 import {notificationLowStock} from "./notifications";
 
 export const product = pgTable('product', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'product_id_sequence' }).primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
     name: varchar({ length: 255 }).notNull(),
     price: numeric({ precision: 9, scale: 2, mode: 'number' }).notNull(),
@@ -39,7 +39,7 @@ export type TProduct = typeof product.$inferSelect;
 export type TProductInsert = typeof product.$inferInsert;
 
 export const productDiscount = pgTable('product_discount', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'product_discount_id_sequence' }).primaryKey(),
     product_id: integer().notNull().references(() => product.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
     new_price: numeric({ precision: 9, scale: 2, mode: 'number' }).notNull(),
     discount_percent: integer().notNull(),

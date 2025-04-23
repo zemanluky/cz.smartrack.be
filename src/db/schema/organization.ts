@@ -5,7 +5,7 @@ import {notification} from "./notifications";
 import {user} from "./user";
 
 export const organization = pgTable('organization', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'organization_id_sequence' }).primaryKey(),
     name: varchar({ length: 255 }).notNull().unique(),
     active: boolean().notNull().default(true)
 });

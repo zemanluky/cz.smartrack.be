@@ -8,7 +8,7 @@ import {product} from "./product";
 export const notificationTypeEnum = pgEnum('notification_type', ['low_stock', 'low_battery']);
 
 export const notification = pgTable('notification', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'notification_id_sequence' }).primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
     type: notificationTypeEnum().notNull(),
     created_at: timestamp().notNull().default(sql`NOW()`),

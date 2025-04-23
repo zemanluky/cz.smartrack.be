@@ -4,7 +4,7 @@ import {notificationLowBattery} from "./notifications";
 import {shelf} from "./shelf";
 
 export const shelfDevice = pgTable('shelf_device', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'shelf_device_id_sequence' }).primaryKey(),
     serial_number: varchar({ length: 255 }).notNull().unique(),
     device_secret: char({ length: 72 }).notNull(),
     current_battery_percent: integer(),
@@ -21,7 +21,7 @@ export type TShelfDevice = typeof shelfDevice.$inferSelect;
 export type TShelfDeviceInsert = typeof shelfDevice.$inferInsert;
 
 export const shelfDeviceStatusLog = pgTable('shelf_device_status_log', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'shelf_device_status_log_id_sequence' }).primaryKey(),
     shelf_device_id: integer().notNull().references(() => shelfDevice.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
     timestamp: timestamp().notNull().default(sql`NOW()`),
     battery_percent: integer().notNull(),

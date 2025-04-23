@@ -1,5 +1,5 @@
 {
-  "id": "a30e92db-921e-4da6-af88-1e630e07af68",
+  "id": "a50215e9-c88b-4c8d-b2b0-53ea614d5061",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -10,9 +10,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "product_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "organization_id": {
           "name": "organization_id",
@@ -36,25 +47,11 @@
           "name": "deleted_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "NULL"
         }
       },
       "indexes": {
-        "prod_name_idx": {
-          "name": "prod_name_idx",
-          "columns": [
-            {
-              "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "prod_price_idx": {
           "name": "prod_price_idx",
           "columns": [
@@ -66,6 +63,27 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "uniq_product_name_org": {
+          "name": "uniq_product_name_org",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -87,15 +105,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "product_name_unique": {
-          "name": "product_name_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -106,9 +116,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "product_discount_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "product_id": {
           "name": "product_id",
@@ -119,6 +140,12 @@
         "new_price": {
           "name": "new_price",
           "type": "numeric(9, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_percent": {
+          "name": "discount_percent",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -192,6 +219,170 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
+      "checkConstraints": {
+        "minmax_discount_percent_check": {
+          "name": "minmax_discount_percent_check",
+          "value": "\"product_discount\".\"discount_percent\" >= 0 AND \"product_discount\".\"discount_percent\" <= 100"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.user": {
+      "name": "user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "user_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(130)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_organization_id_organization_id_fk": {
+          "name": "user_organization_id_organization_id_fk",
+          "tableFrom": "user",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_email_unique": {
+          "name": "user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_refresh_token": {
+      "name": "user_refresh_token",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "user_refresh_token_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jti": {
+          "name": "jti",
+          "type": "varchar(72)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "NOW()"
+        },
+        "valid_until": {
+          "name": "valid_until",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "NULL"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_refresh_token_user_id_user_id_fk": {
+          "name": "user_refresh_token_user_id_user_id_fk",
+          "tableFrom": "user_refresh_token",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
@@ -201,9 +392,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "notification_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "organization_id": {
           "name": "organization_id",
@@ -309,10 +511,10 @@
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
-        "notification_low_battery_shelf_position_device_id_shelf_position_device_id_fk": {
-          "name": "notification_low_battery_shelf_position_device_id_shelf_position_device_id_fk",
+        "notification_low_battery_shelf_position_device_id_shelf_device_id_fk": {
+          "name": "notification_low_battery_shelf_position_device_id_shelf_device_id_fk",
           "tableFrom": "notification_low_battery",
-          "tableTo": "shelf_position_device",
+          "tableTo": "shelf_device",
           "columnsFrom": [
             "shelf_position_device_id"
           ],
@@ -417,12 +619,29 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "shelf_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "organization_id": {
           "name": "organization_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_id": {
+          "name": "device_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -454,6 +673,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "cascade"
+        },
+        "shelf_device_id_shelf_device_id_fk": {
+          "name": "shelf_device_id_shelf_device_id_fk",
+          "tableFrom": "shelf",
+          "tableTo": "shelf_device",
+          "columnsFrom": [
+            "device_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -468,9 +700,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "shelf_position_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "shelf_id": {
           "name": "shelf_id",
@@ -483,12 +726,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
-        },
-        "device_id": {
-          "name": "device_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
         },
         "row": {
           "name": "row",
@@ -543,23 +780,20 @@
           ],
           "onDelete": "set null",
           "onUpdate": "cascade"
-        },
-        "shelf_position_device_id_shelf_position_device_id_fk": {
-          "name": "shelf_position_device_id_shelf_position_device_id_fk",
-          "tableFrom": "shelf_position",
-          "tableTo": "shelf_position_device",
-          "columnsFrom": [
-            "device_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "row_column_shelf_unique": {
+          "name": "row_column_shelf_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "shelf_id",
+            "row",
+            "column"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {
         "minmax_low_stock_threshold": {
@@ -579,9 +813,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "shelf_position_log_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "type": {
           "name": "type",
@@ -624,6 +869,19 @@
       },
       "indexes": {},
       "foreignKeys": {
+        "shelf_position_log_user_id_user_id_fk": {
+          "name": "shelf_position_log_user_id_user_id_fk",
+          "tableFrom": "shelf_position_log",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "cascade"
+        },
         "shelf_position_log_product_id_product_id_fk": {
           "name": "shelf_position_log_product_id_product_id_fk",
           "tableFrom": "shelf_position_log",
@@ -668,9 +926,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "organization_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "name": {
           "name": "name",
@@ -686,43 +955,52 @@
           "default": true
         }
       },
-      "indexes": {
-        "org_name_idx": {
-          "name": "org_name_idx",
-          "columns": [
-            {
-              "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "organization_name_unique": {
+          "name": "organization_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.shelf_position_device": {
-      "name": "shelf_position_device",
+    "public.shelf_device": {
+      "name": "shelf_device",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "shelf_device_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
         "serial_number": {
           "name": "serial_number",
           "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "device_secret": {
+          "name": "device_secret",
+          "type": "char(72)",
           "primaryKey": false,
           "notNull": true
         },
@@ -743,8 +1021,8 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "shelf_position_device_serial_number_unique": {
-          "name": "shelf_position_device_serial_number_unique",
+        "shelf_device_serial_number_unique": {
+          "name": "shelf_device_serial_number_unique",
           "nullsNotDistinct": false,
           "columns": [
             "serial_number"
@@ -755,23 +1033,34 @@
       "checkConstraints": {
         "valid_battery_range_check": {
           "name": "valid_battery_range_check",
-          "value": "\"shelf_position_device\".\"current_battery_percent\" >= 0 AND \"shelf_position_device\".\"current_battery_percent\" <= 100"
+          "value": "\"shelf_device\".\"current_battery_percent\" >= 0 AND \"shelf_device\".\"current_battery_percent\" <= 100"
         }
       },
       "isRLSEnabled": false
     },
-    "public.shelf_position_device_status_log": {
-      "name": "shelf_position_device_status_log",
+    "public.shelf_device_status_log": {
+      "name": "shelf_device_status_log",
       "schema": "",
       "columns": {
         "id": {
           "name": "id",
-          "type": "serial",
+          "type": "integer",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "identity": {
+            "type": "byDefault",
+            "name": "shelf_device_status_log_id_sequence",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
         },
-        "shelf_position_device_id": {
-          "name": "shelf_position_device_id",
+        "shelf_device_id": {
+          "name": "shelf_device_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -792,12 +1081,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "shelf_position_device_status_log_shelf_position_device_id_shelf_position_device_id_fk": {
-          "name": "shelf_position_device_status_log_shelf_position_device_id_shelf_position_device_id_fk",
-          "tableFrom": "shelf_position_device_status_log",
-          "tableTo": "shelf_position_device",
+        "shelf_device_status_log_shelf_device_id_shelf_device_id_fk": {
+          "name": "shelf_device_status_log_shelf_device_id_shelf_device_id_fk",
+          "tableFrom": "shelf_device_status_log",
+          "tableTo": "shelf_device",
           "columnsFrom": [
-            "shelf_position_device_id"
+            "shelf_device_id"
           ],
           "columnsTo": [
             "id"
@@ -812,13 +1101,22 @@
       "checkConstraints": {
         "valid_battery_range_check": {
           "name": "valid_battery_range_check",
-          "value": "\"shelf_position_device_status_log\".\"battery_percent\" >= 0 AND \"shelf_position_device_status_log\".\"battery_percent\" <= 100"
+          "value": "\"shelf_device_status_log\".\"battery_percent\" >= 0 AND \"shelf_device_status_log\".\"battery_percent\" <= 100"
         }
       },
       "isRLSEnabled": false
     }
   },
   "enums": {
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "sys_admin",
+        "org_admin",
+        "org_user"
+      ]
+    },
     "public.notification_battery_state": {
       "name": "notification_battery_state",
       "schema": "public",

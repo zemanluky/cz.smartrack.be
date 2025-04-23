@@ -2,7 +2,7 @@ import Elysia, {error, t} from "elysia";
 import {authDevice, invalidateToken, login, refreshAuth as refreshAuthTokens} from "../service/auth.service";
 import {differenceInSeconds} from "date-fns";
 import {authResponse, deviceAuthData, loginData} from "../model/auth.model";
-import {authUserPlugin, authDevicePlugin, EAuthRequirement, TAuthResolvedContext} from "../plugin/auth.plugin";
+import {authUserPlugin, authDevicePlugin, EAuthRequirement} from "../plugin/auth.plugin";
 
 export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
     .use(authUserPlugin)
@@ -22,7 +22,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         return { access };
     }, {
         body: loginData,
-        cookie: t.Cookie({ refreshAuth: t.String() }),
+        cookie: t.Cookie({ refreshAuth: t.Optional(t.String()) }),
         detail: {
             description: 'Generates JWT access and refresh token for user authenticated by provided credentials. The refresh token is set to an HTTP only cookie.'
         },
@@ -42,7 +42,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
 
         return { access };
     }, {
-        cookie: t.Cookie({ refreshAuth: t.String() }),
+        cookie: t.Cookie({ refreshAuth: t.Optional(t.String()) }),
         response: {
             200: authResponse
         },
@@ -55,7 +55,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         set.status = 204;
         return;
     }, {
-        cookie: t.Cookie({ refreshAuth: t.String() }),
+        cookie: t.Cookie({ refreshAuth: t.Optional(t.String()) }),
         detail: { description: 'Invalidates current refresh token and removes the cookie.' },
     })
     .post('/device-login', async ({ body }) => {

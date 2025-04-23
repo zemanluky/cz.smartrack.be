@@ -7,7 +7,7 @@ import {notificationLowStock} from "./notifications";
 import {user} from "./user";
 
 export const shelf = pgTable('shelf', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'shelf_id_sequence' }).primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
     device_id: integer().notNull().references(() => shelfDevice.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     shelf_name: varchar({ length: 255 }).notNull(),
@@ -22,7 +22,7 @@ export type TShelf = typeof shelf.$inferSelect;
 export type TShelfInsert = typeof shelf.$inferInsert;
 
 export const shelfPosition = pgTable('shelf_position', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'shelf_position_id_sequence' }).primaryKey(),
     shelf_id: integer().notNull().references(() => shelf.id),
     product_id: integer().references(() => product.id, { onUpdate: 'cascade', onDelete: 'set null' }),
     row: integer().notNull(),
@@ -45,7 +45,7 @@ export type TShelfPositionInsert = typeof shelfPosition.$inferInsert;
 
 export const shelfPositionLogTypeEnum = pgEnum('shelf_position_log_type', ['refill', 'auto_check']);
 export const shelfPositionLog = pgTable('shelf_position_log', {
-    id: serial().primaryKey(),
+    id: integer().generatedByDefaultAsIdentity({ name: 'shelf_position_log_id_sequence' }).primaryKey(),
     type: shelfPositionLogTypeEnum().notNull(),
     user_id: integer().notNull().references(() => user.id, { onUpdate: 'cascade', onDelete: 'set null' }),
     product_id: integer().notNull().references(() => product.id),

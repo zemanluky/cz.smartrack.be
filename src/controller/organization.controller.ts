@@ -53,7 +53,6 @@ export const organizationController = new Elysia({
             return await retrieveOrganization(id);
         }, {
             detail: { description: 'Retrieves organization by its ID.' },
-            body: organizationData,
             response: {
                 200: organizationResponse,
                 404: errorResponse

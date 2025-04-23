@@ -1,6 +1,8 @@
-import {JWTPayload, jwtVerify, SignJWT,} from 'jose';
+//@ts-ignore
+import {JWTExpired, JWTClaimValidationFailed, JWTInvalid} from 'jose/errors';
+import {JWTPayload, jwtVerify, SignJWT} from 'jose';
 import {TUser} from "../db/schema/user";
-import {addDays, addMinutes} from "date-fns";
+import {addMinutes} from "date-fns";
 
 const JWT_CLAIM_ROLE = 'sub:role';
 const JWT_ISSUER = Bun.env.JWT_ISSUER || 'smartrack';
@@ -47,6 +49,7 @@ export async function generateUserJwt(userId: number, role: TUser['role']): Prom
  */
 export async function generateUserRefreshJwt(userId: number, jti: string, validUntil: Date): Promise<string> {
     return new SignJWT()
+        .setProtectedHeader({ alg: 'HS256' })
         .setExpirationTime(validUntil)
         .setSubject(userId.toString())
         .setAudience(JWT_APP_AUDIENCE)
@@ -65,6 +68,7 @@ export async function generateDeviceJwt(deviceId: number): Promise<string> {
     const expirationDate = addMinutes(issueDate, 5);
 
     return new SignJWT()
+        .setProtectedHeader({ alg: 'HS256' })
         .setExpirationTime(expirationDate)
         .setSubject(deviceId.toString())
         .setAudience(JWT_IOT_AUDIENCE)
@@ -82,14 +86,22 @@ export type TJwtVerifiedUser = { userId: number, role: TUser['role'] };
  * @returns False when the token is invalid, user's identifier (ID) and role otherwise.
  */
 export async function verifyUserJwt(token: string): Promise<TJwtVerifiedUser|false> {
-    const { payload } = await jwtVerify<JWTPayload & { [JWT_CLAIM_ROLE]: TUser['role'] }>(token, getJwtSecret(), {
-        audience: JWT_APP_AUDIENCE,
-        issuer: JWT_ISSUER,
-        requiredClaims: [JWT_CLAIM_ROLE]
-    });
+    try {
+        const { payload } = await jwtVerify<JWTPayload & { [JWT_CLAIM_ROLE]: TUser['role'] }>(token, getJwtSecret(), {
+            audience: JWT_APP_AUDIENCE,
+            issuer: JWT_ISSUER,
+            requiredClaims: [JWT_CLAIM_ROLE]
+        });
 
-    const userId = Number(payload.sub);
-    return !isNaN(userId) ? { userId, role: payload[JWT_CLAIM_ROLE] } : false;
+        const userId = Number(payload.sub);
+        return !isNaN(userId) ? { userId, role: payload[JWT_CLAIM_ROLE] } : false;
+    }
+    catch (error) {
+        if (error instanceof JWTExpired || error instanceof JWTClaimValidationFailed || error instanceof JWTInvalid)
+            return false;
+
+        throw error;
+    }
 }
 
 type TVerifyRefreshJwtPair = { userId: number, jti: string };

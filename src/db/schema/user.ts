@@ -5,11 +5,11 @@ import {relations, sql} from "drizzle-orm";
 export const userRoleEnum = pgEnum('user_role', ['sys_admin', 'org_admin', 'org_user']);
 
 export const user = pgTable('user', {
-    id: serial().primaryKey(),
-    organization_id: integer().notNull().references(() => organization.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
+    id: integer().generatedAlwaysAsIdentity({ name: 'user_id_sequence' }).primaryKey(),
+    organization_id: integer().references(() => organization.id, { onDelete: 'restrict', onUpdate: 'cascade' }),
     role: userRoleEnum().notNull(),
     email: varchar({ length: 255 }).notNull().unique(),
-    password_hash: char({ length: 72 }).notNull(),
+    password_hash: varchar({ length: 130 }).notNull(),
     name: varchar({ length: 255 }).notNull(),
 });
 
@@ -22,9 +22,9 @@ export const userRelations = relations(user, ({ one, many }) => ({
 }));
 
 export const userRefreshToken = pgTable('user_refresh_token', {
-    id: serial().primaryKey(),
+    id: integer().generatedAlwaysAsIdentity({ name: 'user_refresh_token_id_sequence' }).primaryKey(),
     user_id: integer().notNull().references(() => user.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
-    jti: char({ length: 72 }).notNull(),
+    jti: varchar({ length: 72 }).notNull(),
     created_at: timestamp().notNull().default(sql`NOW()`),
     valid_until: timestamp().notNull(),
     revoked_at: timestamp().default(sql`NULL`)
