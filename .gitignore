@@ -43,3 +43,6 @@ package-lock.json
 
 # IDEs
 .idea
+
+# envs
+.local.env

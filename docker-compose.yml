@@ -27,6 +27,8 @@ services:
     volumes:
       - ./:/app:cached
     command: bash -c "bun install && bun --bun run dev"
+    env_file:
+      - ./.local.env
     ports:
       - "3000:3000"
     environment:
@@ -39,3 +41,4 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       BETTER_AUTH_URL: http://localhost:${APP_PORT}
       JWT_SECRET: ${JWT_SECRET}
+      CONFIG_FRONTEND_RESET_PASSWORD_LINK: ${CONFIG_FRONTEND_RESET_PASSWORD_LINK}

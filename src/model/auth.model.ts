@@ -16,3 +16,17 @@ export const authResponse = t.Object({
     access: t.String()
 });
 export type TAuthResponse = typeof authResponse.static;
+
+export const passwordResetRequestData = t.Object({
+    email: t.String({ format: 'email' })
+});
+export type TPasswordResetRequestData = typeof passwordResetRequestData.static;
+
+export const newPasswordData = t.Object({
+    code: t.String(),
+    password: t.RegExp(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/, {
+        description: 'The new password to set.',
+        error: 'Password must contain at least one uppercase and lowercase letter, one number and one special character. It must be at least 8 characters long.'
+    })
+});
+export type TNewPasswordData = typeof newPasswordData.static;

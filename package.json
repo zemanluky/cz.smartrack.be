@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@elysiajs/swagger": "^1.2.2",
+    "@react-email/components": "0.0.38",
     "@sinclair/typebox": "^0.34.33",
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.0",
@@ -15,13 +16,18 @@
     "elysia": "latest",
     "jose": "^6.0.10",
     "pg": "^8.15.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "remeda": "^2.21.3",
+    "resend": "^4.5.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bun": "^1.2.10",
     "@types/pg": "^8.11.13",
-    "bun-types": "latest"
+    "@types/react": "^19.1.2",
+    "bun-types": "latest",
+    "react-email": "4.0.11"
   },
   "module": "src/index.js"
 }
