@@ -13,6 +13,11 @@ export enum EAuthRequirement {
     Denied
 }
 
+export type TAuthenticatedUser = {id: number, role: TUser['role']};
+export type TAuthenticatedDevice = number;
+
+export type TAuthDeriveReturn = { user?: TAuthenticatedUser|null, device?: TAuthenticatedDevice|null };
+
 /**
  * Throws an unauthenticated error appropriately when the auth is required, yet it is already known the user or the device
  * is not authenticated.
@@ -23,8 +28,7 @@ function unauthenticated(requirement: EAuthRequirement): void {
         throw new Unauthenticated();
 }
 
-export type TAuthenticatedUser = {id: number, role: TUser['role']};
-export type TAuthenticatedDevice = number|null;
+
 
 export const bearerDerivePlugin = new Elysia({ name: 'bearer-derive' })
     .derive(({ headers }) => {
@@ -51,7 +55,7 @@ export const authUserPlugin = new Elysia({ name: 'auth-user' })
          *                    By default, the requirement is set to null which means the user's auth state won't be determined.
          */
         authUser: (requirement: EAuthRequirement|null = null) => ({
-            resolve: async ({ bearer }) => {
+            resolve: async ({ bearer }): Promise<TAuthDeriveReturn> => {
                 if (requirement === null) return { user: null };
 
                 if (!bearer) {
@@ -88,7 +92,7 @@ export const authDevicePlugin = new Elysia({ name: 'auth-device' })
          *                    By default, the requirement is set to null which means the device's auth state won't be determined.
          */
         authDevice: (requirement: EAuthRequirement|null = null) => ({
-            resolve: async ({ bearer }) => {
+            resolve: async ({ bearer }): Promise<TAuthDeriveReturn> => {
                 if (requirement === null) return { device: null };
 
                 if (!bearer) {
@@ -111,5 +115,3 @@ export const authDevicePlugin = new Elysia({ name: 'auth-device' })
     })
     .as('plugin')
 ;
-
-export type TAuthResolvedContext = Context & { device: TAuthenticatedDevice|null, user: TAuthenticatedUser|null };
