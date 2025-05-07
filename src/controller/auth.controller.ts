@@ -38,7 +38,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         response: authResponse
     })
     .get('/token-refresh', async ({ cookie: { refreshAuth } }) => {
-        if (!refreshAuth.value) throw error(401);
+        if (!refreshAuth.value) throw new Unauthenticated();
 
         const {access, refresh} = await refreshAuthTokens(refreshAuth.value);
 
