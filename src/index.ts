@@ -2,7 +2,7 @@ import Elysia from "elysia";
 import swagger from "@elysiajs/swagger";
 import {authController} from "./controller/auth.controller";
 import {errorHandlerPlugin} from "./plugin/error-handler.plugin";
-import {authDevicePlugin, authUserPlugin} from "./plugin/auth.plugin";
+import {authPlugin} from "./plugin/auth.plugin";
 import {organizationController} from "./controller/organization.controller";
 import {notificationController} from "./controller/notification.controller";
 import {productController} from "./controller/product.controller";
@@ -22,8 +22,7 @@ if (Bun.env.NODE_ENV === 'production') {
 
 const app = new Elysia()
     .use(errorHandlerPlugin)
-    .use(authUserPlugin)
-    .use(authDevicePlugin)
+    .use(authPlugin)
     .use(swagger({
         documentation: {
             info: {
@@ -33,10 +32,17 @@ const app = new Elysia()
             },
             components: {
                 securitySchemes: {
-                    bearerAuth: {
+                    userBearerAuth: {
                         type: 'http',
                         scheme: 'bearer',
-                        bearerFormat: 'JWT'
+                        bearerFormat: 'JWT',
+                        description: 'Allows authentication of the user with a JWT access token.'
+                    },
+                    deviceBearerAuth: {
+                        type: 'http',
+                        scheme: 'bearer',
+                        bearerFormat: 'JWT',
+                        description: 'Allows authentication of a gateway device with a JWT access token.'
                     }
                 }
             }

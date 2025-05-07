@@ -1,12 +1,12 @@
 import Elysia, {t} from "elysia";
-import {authUserPlugin, EAuthRequirement} from "../plugin/auth.plugin";
+import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {listUsersQuery, saveUserData, userResponse} from "../model/user.model";
 import {paginatedResponse} from "../model/pagination.model";
 import {getUserById, listUsers, saveUser, toggleUser} from "../service/user.service";
 import {transformUser} from "../util/transformers/user.transformer";
 
 export const userController = new Elysia({ prefix: '/user', tags: ['User'] })
-    .use(authUserPlugin)
+    .use(authPlugin)
     .guard({ authUser: EAuthRequirement.Required })
     .get('/', async ({ user, query }) => {
         const { metadata, items } = await listUsers(query, user!);

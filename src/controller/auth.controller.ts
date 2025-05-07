@@ -8,14 +8,14 @@ import {
 } from "../service/auth.service";
 import {differenceInSeconds} from "date-fns";
 import {authResponse, deviceAuthData, loginData, newPasswordData, passwordResetRequestData} from "../model/auth.model";
-import {authUserPlugin, authDevicePlugin, EAuthRequirement} from "../plugin/auth.plugin";
+import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {NotFound} from "../error/not-found.error";
 import {userProfileResponse} from "../model/user.model";
 import {transformUserProfile} from "../util/transformers/user.transformer";
+import {Unauthenticated} from "../error/unauthenticated.error";
 
 export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
-    .use(authUserPlugin)
-    .use(authDevicePlugin)
+    .use(authPlugin)
     .post('/login', async ({ body, cookie: { refreshAuth } }) => {
         const {access, refresh} = await login(body.email, body.password);
 

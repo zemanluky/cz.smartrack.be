@@ -46,7 +46,7 @@ export const bearerDerivePlugin = new Elysia({ name: 'bearer-derive' })
  * Handles adding authenticated user's data to the context &
  * early ending the request if the auth requirements are not met.
  */
-export const authUserPlugin = new Elysia({ name: 'auth-user' })
+export const authPlugin = new Elysia({ name: 'auth-user' })
     .use(bearerDerivePlugin)
     .macro({
         /**
@@ -74,18 +74,8 @@ export const authUserPlugin = new Elysia({ name: 'auth-user' })
 
                 return { user: { id: verifiedUser.userId, role: verifiedUser.role } };
             },
-        })
-    })
-    .as('plugin')
-;
+        }),
 
-/**
- * Handles adding authenticated device's data to the context &
- * early ending the request if the auth requirements are not met.
- */
-export const authDevicePlugin = new Elysia({ name: 'auth-device' })
-    .use(bearerDerivePlugin)
-    .macro({
         /**
          * Tries to authenticate the device from the request context.
          * @param requirement Specify the requirement for device authentication.

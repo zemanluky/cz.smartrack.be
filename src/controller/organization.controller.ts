@@ -1,5 +1,5 @@
 import Elysia, {t} from "elysia";
-import {authUserPlugin, EAuthRequirement} from "../plugin/auth.plugin";
+import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {organizationData, organizationListFilters, organizationResponse} from "../model/organization.model";
 import {errorResponse} from "../model/error.model";
 import {
@@ -17,7 +17,7 @@ export const organizationController = new Elysia({
         security: [{ bearerAuth: [] }]
     }
 })
-    .use(authUserPlugin)
+    .use(authPlugin)
     .guard({ authUser: EAuthRequirement.Required })
     .get(
         '/', async ({ query }) => {
