@@ -6,6 +6,7 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.3.0",
     "@elysiajs/swagger": "^1.2.2",
     "@react-email/components": "0.0.38",
     "@sinclair/typebox": "^0.34.33",

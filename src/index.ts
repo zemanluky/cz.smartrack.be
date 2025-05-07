@@ -10,10 +10,12 @@ import {productDiscountController} from "./controller/product-discount.controlle
 import {shelfController} from "./controller/shelf.controller";
 import {shelfPositionController} from "./controller/shelf-position.controller";
 import {userController} from "./controller/user.controller";
-import {deviceController} from "./controller/device.controller";
-import {deviceStatusController} from "./controller/device-status.controller";
+import {gatewayDeviceController} from "./controller/gateway-device.controller";
 import { db } from "./db/db";
 import { migrate } from 'drizzle-orm/bun-sql/migrator';
+import {shelfDeviceIotController} from "./controller/shelf-device.iot.controller";
+import {shelfDeviceController} from "./controller/shelf-device.controller";
+import cors from "@elysiajs/cors";
 
 if (Bun.env.NODE_ENV === 'production') {
     // migrate before starting the server
@@ -21,6 +23,9 @@ if (Bun.env.NODE_ENV === 'production') {
 }
 
 const app = new Elysia()
+    .use(cors({
+        origin: [/.*\.smartrack\.zeluk\.dev$/, 'localhost:5173']
+    }))
     .use(errorHandlerPlugin)
     .use(authPlugin)
     .use(swagger({
@@ -49,8 +54,9 @@ const app = new Elysia()
         }
     }))
     .use(authController)
-    .use(deviceController)
-    .use(deviceStatusController)
+    .use(gatewayDeviceController)
+    .use(shelfDeviceIotController)
+    .use(shelfDeviceController)
     .use(notificationController)
     .use(organizationController)
     .use(productController)
