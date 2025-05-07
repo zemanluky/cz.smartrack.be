@@ -93,7 +93,7 @@ export async function verifyUserJwt(token: string): Promise<TJwtVerifiedUser|nul
             requiredClaims: [JWT_CLAIM_ROLE]
         });
 
-        if (payload.sub !== JWT_APP_AUDIENCE) return null;
+        if (payload.aud !== JWT_APP_AUDIENCE) return null;
 
         const userId = Number(payload.sub);
         return !isNaN(userId) ? { userId, role: payload[JWT_CLAIM_ROLE] } : false;
