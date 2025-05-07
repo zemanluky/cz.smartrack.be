@@ -22,7 +22,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         // set the refresh token to a cookie
         refreshAuth.set({
             expires: refresh.validUntil,
-            maxAge: differenceInSeconds(new Date(), refresh.validUntil),
+            maxAge: Math.abs(differenceInSeconds(new Date(), refresh.validUntil)),
             secure: true,
             httpOnly: true,
             value: refresh.jwt,
@@ -45,7 +45,7 @@ export const authController = new Elysia({ prefix: '/auth', tags: ['Auth'] })
         // set the refresh token to a cookie
         refreshAuth.update({
             expires: refresh.validUntil,
-            maxAge: differenceInSeconds(new Date(), refresh.validUntil),
+            maxAge: Math.abs(differenceInSeconds(new Date(), refresh.validUntil)),
             value: refresh.jwt
         });
 
