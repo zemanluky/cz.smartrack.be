@@ -37,11 +37,14 @@ async function verifyUsersOrganization(userId: number): Promise<TOrganization|nu
 
 /**
  * Lists products for a given user (organization). Additional filters may be applied.
- * @param userId
+ * @param user
  * @param filters
  */
-export async function listProducts(userId: number, filters: TListProductQuery): Promise<TPaginatedResult<TProduct>> {
-    const organizationId = !filters.organization_id ? (await verifyUsersOrganization(userId))!.id : filters.organization_id;
+export async function listProducts(user: TAuthenticatedUser, filters: TListProductQuery): Promise<TPaginatedResult<TProduct>> {
+    if (user.role === 'sys_admin' && filters.organization_id === null)
+        throw new BadRequest('As a system admin you are required to provide the ID of the organization whose products you wanna retrieve.', 'missing_parameter');
+
+    const organizationId = !filters.organization_id ? (await verifyUsersOrganization(user.id))!.id : filters.organization_id;
     const zeroIndexedPage = filters.page - 1;
     const offset = zeroIndexedPage * filters.limit;
 

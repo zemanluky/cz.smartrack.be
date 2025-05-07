@@ -15,7 +15,7 @@ export const productController = new Elysia({ prefix: '/product', tags: ['Produc
             ? R.omit(query, ['organization_id'])
             : query
         ;
-        const paginatedResults = await listProducts(user!.id, filteredQuery);
+        const paginatedResults = await listProducts(user!, filteredQuery);
         return {
             metadata: paginatedResults.metadata,
             items: paginatedResults.items.map(product => transformProduct(product, user!.role))
