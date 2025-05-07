@@ -4,6 +4,7 @@ import {DEFAULT_MESSAGE as DEFAULT_UNAUTHENTICATED_MESSAGE, Unauthenticated} fro
 import * as R from 'remeda';
 import {DEFAULT_MESSAGE as DEFAULT_UNAUTHORIZED_MESSAGE, Unauthorized} from "../error/unauthorized.error";
 import {ElysiaCustomStatusResponse} from "elysia/dist/error";
+import {BadRequest} from "../error/bad-request.error";
 
 type TBaseErrorResponse = {
     error: {
@@ -46,11 +47,18 @@ function createBaseErrorObject(
  * Global plugin that handles transforming thrown errors into responses.
  */
 export const errorHandlerPlugin = new Elysia({ name: 'error-handler' })
-    .error({ NotFound, Unauthenticated, Unauthorized })
+    .error({ NotFound, Unauthenticated, Unauthorized, BadRequest })
     .onError(({ code, error, set }) => {
         console.log(code);
 
         switch(code) {
+            case 'BadRequest':
+                set.status = 400;
+                return createBaseErrorObject(
+                    error, 'Invalid endpoint usage.',
+                    error.action !== null ? error.action : 'bad_request'
+                );
+
             case 'Unauthorized':
                 set.status = 403;
                 return createBaseErrorObject(
@@ -60,7 +68,7 @@ export const errorHandlerPlugin = new Elysia({ name: 'error-handler' })
 
             case 'Unauthenticated':
                 set.status = 401;
-                return createBaseErrorObject(error, DEFAULT_UNAUTHENTICATED_MESSAGE, `unathenticated.${error.code}`);
+                return createBaseErrorObject(error, DEFAULT_UNAUTHENTICATED_MESSAGE, `unathenticated.${error.action}`);
 
             case 'NotFound': case 'NOT_FOUND':
                 set.status = 'Not Found';

@@ -3,11 +3,11 @@ type TUnauthenticatedErrCode = 'missing_jwt'|'expired'|'invalid_credentials'|'in
 
 /** Indicates that the user or device must be authenticated in order to use a given action */
 export class Unauthenticated extends Error {
-    public code: TUnauthenticatedErrCode;
+    public action: TUnauthenticatedErrCode;
 
-    constructor(message: string = DEFAULT_MESSAGE, code: TUnauthenticatedErrCode = 'missing_jwt') {
+    constructor(message: string = DEFAULT_MESSAGE, action: TUnauthenticatedErrCode = 'missing_jwt') {
         super(message);
 
-        this.code = code;
+        this.action = action;
     }
 }
