@@ -5,7 +5,7 @@ const Environment = Type.Object({
     CONFIG_MAX_REFRESH_TOKENS: Type.Optional(Type.Number({ min: 1 })),
     CONFIG_REFRESH_TOKEN_DAYS_LIFE: Type.Optional(Type.Number({ min: 1 })),
     CONFIG_RESET_PASSWORD_REQUEST_VALIDITY: Type.Optional(Type.Number({ min: 1 })),
-    CONFIG_FRONTEND_RESET_PASSWORD_LINK: Type.Required(Type.String({ format: 'uri' })),
+    CONFIG_FRONTEND_RESET_PASSWORD_LINK: Type.Required(Type.String()),
     RESEND_API_KEY: Type.Required(Type.String())
 });
 

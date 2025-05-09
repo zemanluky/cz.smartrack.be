@@ -10,7 +10,7 @@ import {
 import * as R from "remeda";
 import {Unauthenticated} from "../error/unauthenticated.error";
 import environment from "../util/environment";
-import {findDeviceBySerial} from "../repository/device.repository";
+import {findGatewayDeviceBySerial} from "../repository/gateway-device.repository";
 import {TNewPasswordData, TPasswordResetRequestData} from "../model/auth.model";
 import {
     findValidResetPasswordRequestById,
@@ -78,7 +78,7 @@ export async function login(email: string, password: string): Promise<TTokenPair
  * @param deviceSecret
  */
 export async function authDevice(serialNumber: string, deviceSecret: string): Promise<string> {
-    const device = await findDeviceBySerial(serialNumber);
+    const device = await findGatewayDeviceBySerial(serialNumber);
 
     if (!device) throw new Unauthenticated('Provided device credentials are invalid.', 'invalid_device_credentials');
 

@@ -2,20 +2,18 @@ import {check, integer, pgEnum, pgTable, serial, timestamp, unique, varchar} fro
 import {organization} from "./organization";
 import {relations, sql} from "drizzle-orm";
 import {product} from "./product";
-import {shelfDevice} from "./device";
+import {gatewayDevice} from "./device";
 import {notificationLowStock} from "./notifications";
 import {user} from "./user";
 
 export const shelf = pgTable('shelf', {
     id: integer().generatedByDefaultAsIdentity({ name: 'shelf_id_sequence' }).primaryKey(),
     organization_id: integer().notNull().references(() => organization.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
-    device_id: integer().notNull().references(() => shelfDevice.id, { onUpdate: 'cascade', onDelete: 'restrict' }),
     shelf_name: varchar({ length: 255 }).notNull(),
     shelf_store_location: varchar({ length: 255 })
 });
 export const shelfRelations = relations(shelf, ({ one, many }) => ({
     shelf_positions: many(shelfPosition),
-    device: one(shelfDevice, { fields: [shelf.device_id], references: [shelfDevice.id] }),
     organization: one(organization, { fields: [shelf.organization_id], references: [organization.id] }),
 }));
 export type TShelf = typeof shelf.$inferSelect;
