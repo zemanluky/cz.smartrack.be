@@ -29,6 +29,7 @@ export const saveUserData = t.Object({
 export type TSaveUserData = typeof saveUserData.static;
 
 export const userResponse = t.Object({
+    id: t.Number(),
     organization: t.Nullable(organizationResponse),
     role: userRole,
     email: t.String(),

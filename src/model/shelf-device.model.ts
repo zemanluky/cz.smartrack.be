@@ -100,7 +100,11 @@ export const shelfDeviceDetailResponse = t.Composite([
             has_nfc_tag_paired: t.Boolean()
         })),
         recent_logs: t.Array(deviceStatusResponse),
-        gateway_device: t.Omit(gatewayDeviceResponse, ['number_of_nodes'])
+        gateway_device: t.Object({
+            id: t.Number({ description: 'Internal ID of the device.' }),
+            serial_number: t.String({ description: 'The serial number of the device.' }),
+            last_connected: t.Nullable(t.Date({ description: 'The last time the device got connected.' })),
+        })
     })
 ]);
 export type TShelfDeviceDetailResponse = typeof shelfDeviceDetailResponse.static;
