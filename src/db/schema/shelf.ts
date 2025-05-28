@@ -27,6 +27,7 @@ export const shelfPosition = pgTable('shelf_position', {
     column: integer().notNull(),
     low_stock_threshold_percent: integer().notNull().default(20),
     max_current_product_capacity: integer(),
+    current_stock_percent: integer().default(0)
 }, (table) => [
     unique('row_column_shelf_unique').on(table.shelf_id, table.row, table.column),
     check('minmax_low_stock_threshold', sql`${table.low_stock_threshold_percent} > 0 AND ${table.low_stock_threshold_percent} < 100`),
