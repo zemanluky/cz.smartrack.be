@@ -31,7 +31,7 @@ export async function findUsers(
  */
 export async function countUsersByFilter(filters: SQL|null = null): Promise<number> {
     const result = await db.select({ count: count() })
-        .from(product)
+        .from(user)
         .where(filters ?? undefined)
     ;
     return result[0].count;
@@ -97,7 +97,7 @@ export async function updateUserProfile(data: Partial<Omit<TUser, 'id'|'deleted_
 export async function softDeleteUser(id: number, isDelete: boolean = true): Promise<TUser> {
     const result = await db.update(user)
         .set({ deleted_at: isDelete ? new Date() : null })
-        .where(eq(product.id, id))
+        .where(eq(user.id, id))
         .returning()
     ;
 
