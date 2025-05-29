@@ -114,15 +114,23 @@ type TVerifyRefreshJwtPair = { userId: number, jti: string };
  * @returns False when the token is invalid, otherwise properties to identify the user and the token.
  */
 export async function verifyUserRefreshJwt(token: string): Promise<TVerifyRefreshJwtPair|false> {
-    const { payload: { sub, jti, aud } } = await jwtVerify(token, getJwtSecret(), {
-        issuer: JWT_ISSUER,
-        requiredClaims: ['jti']
-    });
+    try {
+        const { payload: { sub, jti, aud } } = await jwtVerify(token, getJwtSecret(), {
+            issuer: JWT_ISSUER,
+            requiredClaims: ['jti']
+        });
 
-    if (aud !== JWT_APP_AUDIENCE) return false;
+        if (aud !== JWT_APP_AUDIENCE) return false;
 
-    const userId = Number(sub);
-    return !isNaN(userId) ? { userId, jti: jti as string } : false;
+        const userId = Number(sub);
+        return !isNaN(userId) ? { userId, jti: jti as string } : false;
+    }
+    catch (error) {
+        if (error instanceof JWTExpired || error instanceof JWTClaimValidationFailed || error instanceof JWTInvalid)
+            return false;
+
+        throw error;
+    }
 }
 
 /**
@@ -132,13 +140,21 @@ export async function verifyUserRefreshJwt(token: string): Promise<TVerifyRefres
  *          device's identifier (ID) otherwise.
  */
 export async function verifyDeviceJwt(token: string): Promise<number|null|false> {
-    const { payload: { sub, aud } } = await jwtVerify(token, getJwtSecret(), {
-        audience: JWT_IOT_AUDIENCE,
-        issuer: JWT_ISSUER
-    });
+    try {
+        const { payload: { sub, aud } } = await jwtVerify(token, getJwtSecret(), {
+            audience: JWT_IOT_AUDIENCE,
+            issuer: JWT_ISSUER
+        });
 
-    if (aud !== JWT_IOT_AUDIENCE) return null;
+        if (aud !== JWT_IOT_AUDIENCE) return null;
 
-    const userId = Number(sub);
-    return !isNaN(userId) ? userId : false;
+        const deviceId = Number(sub);
+        return !isNaN(deviceId) ? deviceId : false;
+    }
+    catch (error) {
+        if (error instanceof JWTExpired || error instanceof JWTClaimValidationFailed || error instanceof JWTInvalid)
+            return false;
+
+        throw error;
+    }
 }
