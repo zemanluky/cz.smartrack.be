@@ -110,7 +110,7 @@ export async function addShelfPositionsDevice(data: TCreateShelfDeviceData, gate
  * @param device The node device's detail with pairings.
  */
 async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Promise<TNodeDeviceConfigResponse['slots']> {
-    const slots = await Promise.all(device.pairings.map(async (pairing): Promise<TSlotConfig & { pairingCode: string }> => {
+    const slots = await Promise.all(device.pairings.map(async (pairing): Promise<TSlotConfig & { slotIndex: number }> => {
         // check if the shelf position has a product set, add info about the product
         // or tell the device to show nothing when no product is assigned
         if (pairing.shelf_position_id !== null) {
@@ -120,7 +120,7 @@ async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Pro
                 // TODO: verify ongoing discount
 
                 return {
-                    pairingCode: pairing.pairing_code,
+                    slotIndex: pairing.slot_number - 1,
                     type: 'product',
                     product: {
                         name: shelfPosition.product.name.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
@@ -131,14 +131,14 @@ async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Pro
             }
 
             return {
-                pairingCode: pairing.pairing_code,
+                slotIndex: pairing.slot_number - 1,
                 type: 'none'
             }
         }
 
         // return pairing information
         return {
-            pairingCode: pairing.pairing_code,
+            slotIndex: pairing.slot_number - 1,
             type: 'pairing',
             pairing: { code: pairing.pairing_code }
         }
@@ -146,7 +146,7 @@ async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Pro
 
     return R.pipe(
         slots,
-        R.mapToObj(slot => [slot.pairingCode, R.omit(slot, ['pairingCode'])])
+        R.mapToObj(slot => [slot.slotIndex, R.omit(slot, ['slotIndex'])])
     );
 }
 
