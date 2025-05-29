@@ -108,7 +108,7 @@ export async function updateProductDiscount(data: Partial<TDiscountData>, id: nu
  */
 export async function deleteProductDiscount(id: number): Promise<void> {
     const result = await db.delete(productDiscount)
-        .where(eq(product.id, id))
+        .where(eq(productDiscount.id, id))
         .returning()
     ;
 

@@ -31,6 +31,24 @@ export const batchNodeDeviceStatusData = t.Record(
 );
 export type TBatchNodeDeviceStatusData = typeof batchNodeDeviceStatusData.static;
 
+export const nodeDeviceStockStatusData = t.Array(t.Object({
+    slot_index: t.Number({ minimum: 0, description: 'The index of the slot the node device manages.' }),
+    current_stock_percent: t.Number({ minimum: 0, maximum: 100, description: 'Current stock status in percentage.' }),
+    timestamp: t.Date({
+        maximumTimestamp: getUnixTime(new Date()) + 10, // account for some minor difference
+        description: 'The date and time at which the status was reported.',
+        default: new Date()
+    })
+}));
+export type TNodeDeviceStockData = typeof nodeDeviceStockStatusData.static;
+
+export const batchNodeDeviceStockStatusData = t.Record(
+    t.String({ description: 'Provide serial number as the key.' }),
+    nodeDeviceStockStatusData,
+    { description: 'Key-value pairs for the stock status of multiple node devices.' }
+)
+export type TBatchNodeDeviceStockStatusData = typeof batchNodeDeviceStockStatusData.static;
+
 export const nodeDeviceItem = t.Object({
     id: t.Number({ description: 'ID of this shelf device.' }),
     serial_number: t.String({ description: 'Serial number of this shelf device.' }),

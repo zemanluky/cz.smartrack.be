@@ -1,4 +1,5 @@
 import {
+    TShelfPositionWithProduct,
     TShelfWithDetailedPositionsOrganizations,
     TShelfWithPositionsOrganizations
 } from "../../repository/shelf.repository";
@@ -25,6 +26,42 @@ export function transformShelf(shelf: TShelfWithPositionsOrganizations, user: TA
 }
 
 /**
+ * Transform one shelf position with product information.
+ * @param item
+ */
+export function transformShelfPositionItem(item: TShelfPositionWithProduct): TShelfDetailResponse['shelf_positions'][0] {
+    const baseData = R.omit(item, ['shelf_id','product_id','product','low_stock_threshold_percent']);
+
+    if (item.product_id === null) {
+        return {
+            ...baseData,
+            product: null,
+            is_low_stock: null,
+            estimated_product_amount: null,
+        }
+    }
+
+    const isLowStock = item.current_stock_percent !== null
+        ? item.current_stock_percent <= item.low_stock_threshold_percent
+        : null
+    ;
+    const estimatedProductAmount = item.max_current_product_capacity !== null && item.current_stock_percent !== null
+        ? Math.floor((item.current_stock_percent / 100) * item.max_current_product_capacity)
+        : null
+    ;
+
+    return {
+        ...baseData,
+        is_low_stock: isLowStock,
+        product: {
+            id: item.product_id,
+            name: item.product!.name
+        },
+        estimated_product_amount: estimatedProductAmount
+    }
+}
+
+/**
  * Transforms shelf detail into detail response.
  * @param shelf
  * @param user
@@ -32,36 +69,6 @@ export function transformShelf(shelf: TShelfWithPositionsOrganizations, user: TA
 export function transformShelfDetail(shelf: TShelfWithDetailedPositionsOrganizations, user: TAuthenticatedUser): TShelfDetailResponse {
     return {
         ...transformShelf(shelf, user),
-        shelf_positions: shelf.shelf_positions.map((sp): TShelfDetailResponse['shelf_positions'][0] => {
-            const baseData = R.omit(sp, ['shelf_id','product_id','product','low_stock_threshold_percent']);
-
-            if (sp.product_id === null) {
-                return {
-                    ...baseData,
-                    product: null,
-                    is_low_stock: null,
-                    estimated_product_amount: null,
-                }
-            }
-
-            const isLowStock = sp.current_stock_percent !== null
-                ? sp.current_stock_percent <= sp.low_stock_threshold_percent
-                : null
-            ;
-            const estimatedProductAmount = sp.max_current_product_capacity !== null && sp.current_stock_percent !== null
-                ? Math.floor((sp.current_stock_percent / 100) * sp.max_current_product_capacity)
-                : null
-            ;
-
-            return {
-                ...baseData,
-                is_low_stock: isLowStock,
-                product: {
-                    id: sp.product_id,
-                    name: sp.product!.name
-                },
-                estimated_product_amount: estimatedProductAmount
-            }
-        })
+        shelf_positions: shelf.shelf_positions.map(sp => transformShelfPositionItem(sp))
     }
 }

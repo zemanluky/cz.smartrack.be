@@ -42,13 +42,10 @@ export const shelfPositionRelations = relations(shelfPosition, ({ one, many }) =
 export type TShelfPosition = typeof shelfPosition.$inferSelect;
 export type TShelfPositionInsert = typeof shelfPosition.$inferInsert;
 
-export const shelfPositionLogTypeEnum = pgEnum('shelf_position_log_type', ['refill', 'auto_check']);
 export const shelfPositionLog = pgTable('shelf_position_log', {
     id: integer().generatedByDefaultAsIdentity({ name: 'shelf_position_log_id_sequence' }).primaryKey(),
-    type: shelfPositionLogTypeEnum().notNull(),
-    user_id: integer().notNull().references(() => user.id, { onUpdate: 'cascade', onDelete: 'set null' }),
-    product_id: integer().notNull().references(() => product.id),
     shelf_position_id: integer().notNull().references(() => shelfPosition.id),
+    product_id: integer().notNull().references(() => product.id),
     timestamp: timestamp().notNull().default(sql`NOW()`),
     amount_percent: integer().notNull(),
 }, (table) => [
@@ -56,8 +53,7 @@ export const shelfPositionLog = pgTable('shelf_position_log', {
 ]);
 export const shelfPositionLogRelations = relations(shelfPositionLog, ({ one }) => ({
     shelf_position: one(shelfPosition, { fields: [shelfPositionLog.shelf_position_id], references: [shelfPosition.id] }),
-    product: one(product, { fields: [shelfPositionLog.product_id], references: [product.id] }),
-    user: one(user, { fields: [shelfPositionLog.user_id], references: [user.id] }),
+    product: one(product, { fields: [shelfPositionLog.product_id], references: [product.id] })
 }));
 export type TShelfPositionLogEntry = typeof shelfPositionLog.$inferSelect;
 export type TShelfPositionLogEntryInsert = typeof shelfPositionLog.$inferInsert;

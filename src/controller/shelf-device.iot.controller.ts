@@ -2,15 +2,15 @@ import Elysia, { t } from "elysia";
 import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {
     batchNodeDeviceConfigResponse,
-    batchNodeDeviceStatusData, createShelfDeviceData,
+    batchNodeDeviceStatusData, batchNodeDeviceStockStatusData, createShelfDeviceData,
     nodeDeviceConfigResponse,
-    nodeDeviceStatusData
+    nodeDeviceStatusData, nodeDeviceStockStatusData
 } from "../model/shelf-device.model";
 import {logLastGatewayConnection} from "../service/gateway-device.service";
 import {
     addShelfPositionsDevice,
     getBatchShelfPositionsDeviceDisplayConfig,
-    getShelfPositionsDeviceDisplayConfig,
+    getShelfPositionsDeviceDisplayConfig, pushBatchDeviceStockStatuses,
     pushBatchShelfDeviceStatuses, pushShelfDeviceStatus
 } from "../service/shelf-device.service";
 
@@ -53,6 +53,16 @@ export const shelfDeviceIotController = new Elysia({ prefix: '/iot/shelf-device'
             204: t.Undefined()
         }
     })
+    .post('/batch-stock', async ({ body, device, set }) => {
+        await pushBatchDeviceStockStatuses(body, device!);
+        set.status = 204;
+    }, {
+        body: batchNodeDeviceStockStatusData,
+        detail: { description: 'Allows the gateway to push the current stock status of multiple of its slot devices at once.' },
+        response: {
+            204: t.Undefined()
+        }
+    })
     .guard({ params: t.Object({ serial: t.String({ description: 'Serial number of the node device.' }) }) })
     .get('/:serial/config', async ({ params, device }) => {
         return await getShelfPositionsDeviceDisplayConfig(params.serial, device!);
@@ -69,6 +79,16 @@ export const shelfDeviceIotController = new Elysia({ prefix: '/iot/shelf-device'
         detail: { description: 'Lets the gateway device push status of one of its managed node devices.' },
         response: {
             204: t.Undefined()
+        }
+    })
+    .post('/:serial/stock', async ({ body, params, device, set }) => {
+        await pushBatchDeviceStockStatuses({ [params.serial]: body }, device!);
+        set.status = 204;
+    }, {
+        body: nodeDeviceStockStatusData,
+        detail: { description: 'Allows the gateway to push the current stock status of one of its slot devices.' },
+        response: {
+            204: t.Undefined({ description: 'Successfully pushed the stock status.' })
         }
     })
 ;

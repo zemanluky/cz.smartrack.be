@@ -29,22 +29,24 @@ export const shelfListItemResponse = t.Object({
 });
 export type TShelfListItemResponse = typeof shelfListItemResponse.static;
 
+export const shelfPositionItem = t.Object({
+    id: t.Number({ description: 'ID of the given position in the shelf.' }),
+    row: t.Number({ description: 'Row number of the position within the parent shelf.' }),
+    column: t.Number({ description: 'Column number of the position within the parent shelf.' }),
+    current_stock_percent: t.Nullable(t.Number({ minimum: 0, maximum: 100, description: 'Last reported percentage amount of product left.' })),
+    estimated_product_amount: t.Nullable(t.Number({ minimum: 0, description: 'Approximated number of items left on this shelf position.' })),
+    max_current_product_capacity: t.Nullable(t.Number({ minimum: 0, description: 'The set maximum amount of items left on this shelf position.' })),
+    is_low_stock: t.Nullable(t.Boolean({ description: 'Whether the stock on this position is lower than the set threshold.' })),
+    product: t.Nullable(t.Object({
+        id: t.Number({ description: 'ID of the assigned product to the shelf.' }),
+        name: t.String({ description: 'Name of the assigned product.' })
+    }))
+});
+
 export const shelfDetailResponse = t.Composite([
     shelfListItemResponse,
     t.Object({
-        shelf_positions: t.Array(t.Object({
-            id: t.Number({ description: 'ID of the given position in the shelf.' }),
-            row: t.Number({ description: 'Row number of the position within the parent shelf.' }),
-            column: t.Number({ description: 'Column number of the position within the parent shelf.' }),
-            current_stock_percent: t.Nullable(t.Number({ minimum: 0, maximum: 100, description: 'Last reported percentage amount of product left.' })),
-            estimated_product_amount: t.Nullable(t.Number({ minimum: 0, description: 'Approximated number of items left on this shelf position.' })),
-            max_current_product_capacity: t.Nullable(t.Number({ minimum: 0, description: 'The set maximum amount of items left on this shelf position.' })),
-            is_low_stock: t.Nullable(t.Boolean(), { description: 'Whether the stock on this position is lower than the set threshold.' }),
-            product: t.Nullable(t.Object({
-                id: t.Number({ description: 'ID of the assigned product to the shelf.' }),
-                name: t.String({ description: 'Name of the assigned product.' })
-            }))
-        }))
+        shelf_positions: t.Array(shelfPositionItem)
     })
 ]);
 export type TShelfDetailResponse = typeof shelfDetailResponse.static;

@@ -7,12 +7,13 @@ import {getQueryOrderByConfig, TSortConfig} from "../util/database";
 import {shelf, TShelf, TShelfInsert, TShelfPosition} from "../db/schema/shelf";
 import {TOrganization} from "../db/schema/organization";
 
+export type TShelfPositionWithProduct = TShelfPosition & { product: TProduct|null };
 export type TShelfWithPositionsOrganizations = TShelf & {
     shelf_positions: Array<TShelfPosition>,
     organization: TOrganization
 }
 export type TShelfWithDetailedPositionsOrganizations = TShelf & {
-    shelf_positions: Array<TShelfPosition & { product: TProduct|null }>,
+    shelf_positions: Array<TShelfPositionWithProduct>,
     organization: TOrganization
 }
 
@@ -53,7 +54,7 @@ export async function countShelvesByFilter(filters: SQL|null = null): Promise<nu
  */
 export async function findShelfById(shelfId: number): Promise<TShelfWithDetailedPositionsOrganizations|null> {
     const result = await db.query.shelf.findFirst({
-        where: eq(product.id, shelfId),
+        where: eq(shelf.id, shelfId),
         with: {
             shelf_positions: {
                 with: {
@@ -96,5 +97,5 @@ export async function updateShelf(data: Partial<Omit<TShelf, 'id'>>, id: number)
  * @param id ID of the shelf to delete.
  */
 export async function deleteShelf(id: number): Promise<void> {
-    await db.delete(shelf).where(eq(product.id, id));
+    await db.delete(shelf).where(eq(shelf.id, id));
 }

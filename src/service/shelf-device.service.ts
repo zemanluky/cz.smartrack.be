@@ -1,6 +1,6 @@
 import {
     TAssignNfcTagData, TBatchNodeDeviceConfigResponse,
-    TBatchNodeDeviceStatusData,
+    TBatchNodeDeviceStatusData, TBatchNodeDeviceStockStatusData,
     TCreateShelfDeviceData,
     TDeviceStatusData,
     TListDeviceStatusLogsQuery, TNodeDeviceConfigResponse, TSlotConfig
@@ -34,6 +34,8 @@ import {getGatewayDeviceById} from "./gateway-device.service";
 import {BadRequest} from "../error/bad-request.error";
 import { db } from "../db/db";
 import {shelfDeviceController} from "../controller/shelf-device.controller";
+import {pushStockStatus, TStockStatusData} from "./shelf-position.service";
+import {findShelfPositionById, TShelfPositionDetail} from "../repository/shelf-position.repository";
 
 /**
  * Gets existing shelf positions device by its serial number.
@@ -108,11 +110,25 @@ export async function addShelfPositionsDevice(data: TCreateShelfDeviceData, gate
  * @param device The node device's detail with pairings.
  */
 async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Promise<TNodeDeviceConfigResponse['slots']> {
-    const slots = device.pairings.map((pairing): TSlotConfig & { pairingCode: string } => {
+    const slots = await Promise.all(device.pairings.map(async (pairing): Promise<TSlotConfig & { pairingCode: string }> => {
         // check if the shelf position has a product set, add info about the product
         // or tell the device to show nothing when no product is assigned
         if (pairing.shelf_position_id !== null) {
-            // TODO: Check if a product is assigned and return it with possible discount
+            const shelfPosition = await findShelfPositionById(pairing.shelf_position_id) as TShelfPositionDetail;
+
+            if (shelfPosition.product !== null) {
+                // TODO: verify ongoing discount
+
+                return {
+                    pairingCode: pairing.pairing_code,
+                    type: 'product',
+                    product: {
+                        name: shelfPosition.product.name.normalize("NFD").replace(/\p{Diacritic}/gu, ""),
+                        price: shelfPosition.product.price,
+                        discount: null
+                    }
+                }
+            }
 
             return {
                 pairingCode: pairing.pairing_code,
@@ -126,7 +142,7 @@ async function transformPairingIntoConfig(device: TShelfDeviceWithPairings): Pro
             type: 'pairing',
             pairing: { code: pairing.pairing_code }
         }
-    });
+    }));
 
     return R.pipe(
         slots,
@@ -290,4 +306,43 @@ export async function pushBatchShelfDeviceStatuses(data: TBatchNodeDeviceStatusD
     }));
 
     await insertBatchDeviceStatus(logItems);
+}
+
+/**
+ * Pushes stock status logs of multiple node devices at once.
+ * @param data
+ * @param gatewayId
+ */
+export async function pushBatchDeviceStockStatuses(data: TBatchNodeDeviceStockStatusData, gatewayId: number): Promise<void> {
+    const serialNumbers = R.keys(data);
+    const shelfDeviceIdMap = await findShelfDeviceIdsBySerialNumbers(serialNumbers, gatewayId);
+    const foundSerialNumber = R.keys(shelfDeviceIdMap);
+
+    if (foundSerialNumber.length !== serialNumbers.length)
+        throw new BadRequest(
+            `Could not find following devices as registered device for current gateway: ${foundSerialNumber.join(', ')}. `
+            + 'Please, re-register the devices before reporting their status.', 'device_status:non_registered_devices'
+        );
+
+    for (const [serial, value] of Object.entries(data)) {
+        const shelfDevice = await findShelfDeviceById(shelfDeviceIdMap[serial]) as TShelfDeviceWithDetail;
+
+        const data = R.pipe(
+            value, R.map((logItem): TStockStatusData[0]|null => {
+                const pairing = R.find(
+                    shelfDevice.pairings,
+                    (pairing) => pairing.slot_number === logItem.slot_index
+                );
+
+                if (!pairing || pairing.shelf_position_id === null) return null;
+
+                return {
+                    shelfPositionId: pairing.shelf_position_id,
+                    entries: [R.omit(logItem, ['slot_index'])]
+                }
+            })
+        );
+
+        await pushStockStatus(data.filter(d => d !== null));
+    }
 }
