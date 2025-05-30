@@ -37,7 +37,7 @@ export const shelfDeviceController = new Elysia({ prefix: '/shelf-device', tags:
         })
     )
     .guard({ params: t.Object({ pairingCode: t.String() }) }, (guardedInstance) => guardedInstance
-        .patch('/:id/nfc', async ({ body, params }) => {
+        .patch('/:pairingCode/nfc', async ({ body, params }) => {
             const device = await assignNfcTagToDevice(body, params.pairingCode);
             return transformShelfDeviceDetail(device);
         }, {

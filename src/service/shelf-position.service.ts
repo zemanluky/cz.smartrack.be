@@ -1,7 +1,14 @@
-import {shelfPositionLog, TShelf, TShelfPositionLogEntry, TShelfPositionLogEntryInsert} from "../db/schema/shelf";
+import {
+    shelf,
+    shelfPositionLog,
+    TShelf,
+    TShelfPosition,
+    TShelfPositionLogEntry,
+    TShelfPositionLogEntryInsert
+} from "../db/schema/shelf";
 import {TAuthenticatedUser} from "../plugin/auth.plugin";
 import {
-    TListShelfPositionLogsQuery,
+    TListShelfPositionLogsQuery, TShelfPositionAssignNodeSlotData,
     TShelfPositionData,
     TShelfPositionProductData
 } from "../model/shelf-position.model";
@@ -33,6 +40,10 @@ import {
     insertShelfPositionLogs
 } from "../repository/shelf-position-log.repository";
 import * as R from 'remeda';
+import {
+    findShelfDevicePairingByPairingCode,
+    updateShelfDevicePairingByPairingCode
+} from "../repository/shelf-device-pairing.repository";
 
 /** ID of the shelf and the shelf position. */
 type TShelfPositionIdPair = readonly [number, number|string];
@@ -209,6 +220,37 @@ export async function assignProductToShelfPosition(
     const updatedShelfPosition = await updateShelfPosition(data, shelfPosition.id);
 
     return await findShelfPositionById(updatedShelfPosition.id) as TShelfPositionDetail;
+}
+
+/**
+ * Assigns shelf position to a specified node slot.
+ * @param data Data to assign the slot.
+ * @param user User assigning the slot.
+ * @param id ID of the shelf and the position.
+ */
+export async function assignNodeSlotToShelfPosition(
+    data: TShelfPositionAssignNodeSlotData, user: TAuthenticatedUser, id: TShelfPositionIdPair
+): Promise<TShelfPositionDetail> {
+    const shelfPosition = await getShelfPositionDetail(id, user);
+
+    // we are unassigning the position from the slot, check
+    if (data.pairing_code === null) {
+        if (shelfPosition.pairing !== null) {
+            await updateShelfDevicePairingByPairingCode(shelfPosition.pairing.pairing_code, { shelf_position_id: null });
+            return {...shelfPosition, pairing: null};
+        }
+
+        return shelfPosition;
+    }
+
+    // verify that the slot exists
+    const pairing = await findShelfDevicePairingByPairingCode(data.pairing_code);
+
+    if (!pairing)
+        throw new BadRequest('The slot device with the given pairing code does not exist.', 'shelf_position:slot_device_missing');
+
+    const updatedPairing = await updateShelfDevicePairingByPairingCode(pairing.pairing_code, { shelf_position_id: shelfPosition.id });
+    return {...shelfPosition, pairing: updatedPairing};
 }
 
 /**

@@ -1,14 +1,15 @@
 import {shelfPosition, TShelf, TShelfPosition, TShelfPositionInsert, TShelfPositionLogEntry} from "../db/schema/shelf";
 import {db} from "../db/db";
 import {and, eq} from "drizzle-orm";
-import {shelfPositionsDevicePairing} from "../db/schema/device";
+import {shelfPositionsDevicePairing, TShelfPositionsDevicePairing} from "../db/schema/device";
 import {TProduct} from "../db/schema/product";
 
 export type TShelfPositionLogWithProduct = TShelfPositionLogEntry & { product: TProduct };
 export type TShelfPositionDetail = TShelfPosition & {
     shelf: TShelf,
     shelf_position_logs: Array<TShelfPositionLogWithProduct>,
-    product: TProduct|null
+    product: TProduct|null,
+    pairing: TShelfPositionsDevicePairing|null
 }
 
 /**
@@ -28,7 +29,8 @@ export async function findShelfPositionById(id: number): Promise<TShelfPositionD
                 with: {
                     product: true
                 }
-            }
+            },
+            pairing: true
         }
     });
     return result ?? null;

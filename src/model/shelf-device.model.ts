@@ -80,6 +80,10 @@ export const assignNfcTagData = t.Object({
 });
 export type TAssignNfcTagData = typeof assignNfcTagData.static;
 
+export const assignShelfPositionData = t.Object({
+    shelf_position_id: t.Number({ description: 'ID of the shelf position to assign.' })
+})
+
 export const nodeDeviceConfigResponse = t.Object({
     slots: t.Record(t.Number(), t.Object({
         type: t.Union([

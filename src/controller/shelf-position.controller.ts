@@ -1,7 +1,7 @@
 import Elysia, {t} from "elysia";
 import {authPlugin, EAuthRequirement} from "../plugin/auth.plugin";
 import {
-    listShelfPositionLogsQuery,
+    listShelfPositionLogsQuery, shelfPositionAssignNodeSlotData,
     shelfPositionData,
     shelfPositionLogItem,
     shelfPositionProductData,
@@ -9,6 +9,7 @@ import {
 } from "../model/shelf-position.model";
 import {paginatedResponse} from "../model/pagination.model";
 import {
+    assignNodeSlotToShelfPosition,
     assignProductToShelfPosition,
     createShelfPosition,
     getShelfPositionDetail, listShelfPositionLogs,
@@ -34,21 +35,6 @@ export const shelfPositionController = new Elysia({ prefix: '/shelf/:id/shelf-po
             201: shelfPositionResponse
         }
     })
-    .guard({
-        params: t.Object({
-            id: t.Number({ description: 'ID of the parent shelf.' }),
-            positionId: t.Number({ description: 'Internal ID of the position, or NFC tag\'s value.'})
-        })
-    }, (guardedController) => guardedController
-        // .patch('/:positionId/product', async ({}) => {
-        //
-        // }, {
-        //     detail: { description: 'Pairs the shelf device to a given node device.'},
-        //     response: {
-        //         200: shelfPositionResponse
-        //     }
-        // })
-    )
     .guard({
         params: t.Object({
             id: t.Number({ description: 'ID of the parent shelf.' }),
@@ -96,6 +82,16 @@ export const shelfPositionController = new Elysia({ prefix: '/shelf/:id/shelf-po
         }, {
             body: shelfPositionProductData,
             detail: { description: 'Assigns a product to existing shelf position. This endpoint is basically stripped down version of PUT endpoint, however it is available to the store workers.' },
+            response: {
+                200: shelfPositionResponse
+            }
+        })
+        .patch('/:positionIdOrTag/node-slot', async ({ body, user, shelfIdPair }) => {
+            const updatedPosition = await assignNodeSlotToShelfPosition(body, user!, shelfIdPair);
+            return transformShelfPositionDetail(updatedPosition);
+        }, {
+            body: shelfPositionAssignNodeSlotData,
+            detail: { description: 'Assigns or unassigns one slot of a node device to this shelf position.' },
             response: {
                 200: shelfPositionResponse
             }

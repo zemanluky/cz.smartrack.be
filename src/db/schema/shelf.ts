@@ -2,7 +2,7 @@ import {check, integer, pgEnum, pgTable, serial, timestamp, unique, varchar} fro
 import {organization} from "./organization";
 import {relations, sql} from "drizzle-orm";
 import {product} from "./product";
-import {gatewayDevice} from "./device";
+import {gatewayDevice, shelfPositionsDevicePairing} from "./device";
 import {notificationLowStock} from "./notifications";
 import {user} from "./user";
 
@@ -34,6 +34,7 @@ export const shelfPosition = pgTable('shelf_position', {
     check('min_product_capacity', sql`${table.max_current_product_capacity} > 0`),
 ]);
 export const shelfPositionRelations = relations(shelfPosition, ({ one, many }) => ({
+    pairing: one(shelfPositionsDevicePairing),
     shelf: one(shelf, { fields: [shelfPosition.shelf_id], references: [shelf.id] }),
     product: one(product, { fields: [shelfPosition.product_id], references: [product.id] }),
     shelf_position_logs: many(shelfPositionLog),

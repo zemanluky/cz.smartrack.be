@@ -7,6 +7,16 @@ import {
 import {eq} from "drizzle-orm";
 
 /**
+ * Finds shelf device pairing slot by its pairing code.
+ */
+export async function findShelfDevicePairingByPairingCode(pairingCode: string): Promise<TShelfPositionsDevicePairing|null> {
+    const result = await db.query.shelfPositionsDevicePairing.findFirst({
+        where: eq(shelfPositionsDevicePairing.pairing_code, pairingCode)
+    });
+    return result ?? null;
+}
+
+/**
  * Batch-inserts data about multiple pairing positions.
  * @param data
  */

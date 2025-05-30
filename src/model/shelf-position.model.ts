@@ -24,6 +24,11 @@ export type TShelfPositionData = typeof shelfPositionData.static;
 export const shelfPositionProductData = t.Omit(shelfPositionData, ['row', 'column']);
 export type TShelfPositionProductData = typeof shelfPositionProductData.static;
 
+export const shelfPositionAssignNodeSlotData = t.Object({
+    pairing_code: t.Nullable(t.String({ description: 'Pairing code of the slot of the node device which should be paired to this shelf position. Provide null when unassigning.' }))
+});
+export type TShelfPositionAssignNodeSlotData = typeof shelfPositionAssignNodeSlotData.static;
+
 export const shelfPositionLogItem = t.Object({
     id: t.Number(),
     timestamp: t.Date({ description: 'Time of log.' }),
