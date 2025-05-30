@@ -76,7 +76,7 @@ export async function getShelfPositionDetail([shelfId, shelfPositionId]: TShelfP
         : await findShelfPositionById(shelfPositionId)
     ;
 
-    if (!shelfPosition || shelfPosition.shelf_id !== shelfId)
+    if (shelfPosition === null || shelfPosition.shelf_id !== shelfId)
         throw new NotFound('The shelf position you are trying to retrieve does not exist.', 'shelf_position');
 
     if (

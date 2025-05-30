@@ -20,21 +20,25 @@ import {transformShelfPositionDetail, transformShelfPositionLog} from "../util/t
 export const shelfPositionController = new Elysia({ prefix: '/shelf/:id/shelf-position', tags: ['Shelf Position'] })
     .use(authPlugin)
     .guard({
-        params: t.Object({ id: t.Number({ description: 'ID of the parent shelf.' }) }),
         authUser: EAuthRequirement.Required,
         authDevice: EAuthRequirement.Denied
     })
-    .post('/', async ({ params, body, set }) => {
-        const createdShelfPosition = await createShelfPosition(body, params.id);
-        set.status = 201;
-        return transformShelfPositionDetail(createdShelfPosition);
-    }, {
-        body: shelfPositionData,
-        detail: { description: 'Creates new shelf position under a given shelf.' },
-        response: {
-            201: shelfPositionResponse
-        }
-    })
+    .guard({
+        params: t.Object({ id: t.Number({ description: 'ID of the parent shelf.' }) })
+    }, (guardedController) => guardedController
+        .post('/', async ({ params, body, set }) => {
+                const createdShelfPosition = await createShelfPosition(body, params.id);
+                set.status = 201;
+                return transformShelfPositionDetail(createdShelfPosition);
+            }, {
+                body: shelfPositionData,
+                detail: { description: 'Creates new shelf position under a given shelf.' },
+                response: {
+                    201: shelfPositionResponse
+                }
+            }
+        )
+    )
     .guard({
         params: t.Object({
             id: t.Number({ description: 'ID of the parent shelf.' }),
@@ -42,12 +46,13 @@ export const shelfPositionController = new Elysia({ prefix: '/shelf/:id/shelf-po
         }),
     }, (guardedController) => guardedController
         .derive(({ params }) => {
+            const shelfIf = Number(params.id);
             const shelfPositionId = Number(params.positionIdOrTag);
 
             if (Number.isNaN(shelfPositionId))
-                return { shelfIdPair: [params.id, params.positionIdOrTag] };
+                return { shelfIdPair: [shelfIf, params.positionIdOrTag] };
 
-            return { shelfIdPair: [params.id, shelfPositionId] };
+            return { shelfIdPair: [shelfIf, shelfPositionId] };
         })
         .get('/:positionIdOrTag', async ({ shelfIdPair, user }) => {
             const shelfPosition = await getShelfPositionDetail(shelfIdPair, user!);
